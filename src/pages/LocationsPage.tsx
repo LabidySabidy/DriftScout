@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useLocations } from '../hooks/useLocations';
 import { useLikes } from '../hooks/useLikes';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import MapView from '../components/MapView';
 import LocationCard from '../components/LocationCard';
+import LocationDrawer from '../components/LocationDrawer';
+import type { LocationWithSubmitter } from '../types';
 
 export default function LocationsPage() {
   const navigate = useNavigate();
@@ -13,6 +15,20 @@ export default function LocationsPage() {
   const { likedIds, toggleLike } = useLikes();
   const [searchCity, setSearchCity] = useState('');
   const [panelOpen, setPanelOpen] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [drawerId, setDrawerId] = useState<string | null>(null);
+
+  const handleSelect = useCallback((loc: LocationWithSubmitter) => {
+    setSelectedId(loc.id);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setSelectedId(null);
+  }, []);
+
+  const handleViewMore = useCallback((loc: LocationWithSubmitter) => {
+    setDrawerId(loc.id);
+  }, []);
 
   const filtered = searchCity.trim()
     ? locations.filter((loc) =>
@@ -68,8 +84,12 @@ export default function LocationsPage() {
                 filtered.map((loc) => (
                   <div
                     key={loc.id}
-                    onClick={() => navigate(`/location/${loc.id}`)}
-                    className="flex items-center gap-3 p-2 rounded-card hover:bg-surface cursor-pointer transition-colors mb-1"
+                    onClick={() => setSelectedId(loc.id)}
+                    className={`flex items-center gap-3 p-2 rounded-card cursor-pointer transition-colors mb-1 ${
+                      selectedId === loc.id
+                        ? 'bg-accent/15 border border-accent/30'
+                        : 'hover:bg-surface'
+                    }`}
                   >
                     {loc.photos?.[0]?.storage_path ? (
                       <img
@@ -112,9 +132,25 @@ export default function LocationsPage() {
         {/* Map */}
         <div className="flex-1 relative">
           {userCoords && (
-            <MapView locations={filtered} center={userCoords} fullHeight />
+            <MapView
+              locations={filtered}
+              center={userCoords}
+              fullHeight
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              onClose={handleClose}
+              onViewMore={handleViewMore}
+            />
           )}
         </div>
+
+        {/* Detail drawer */}
+        {drawerId && (
+          <LocationDrawer
+            locationId={drawerId}
+            onClose={() => setDrawerId(null)}
+          />
+        )}
       </div>
     );
   }

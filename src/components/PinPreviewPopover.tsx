@@ -5,6 +5,7 @@ interface PinPreviewPopoverProps {
   location: LocationWithSubmitter;
   position: { x: number; y: number };
   onClose: () => void;
+  onViewMore?: () => void;
 }
 
 const permissionLabels: Record<string, string> = {
@@ -19,7 +20,7 @@ const permissionColors: Record<string, string> = {
   high: 'text-perm-sec',
 };
 
-export default function PinPreviewPopover({ location, position, onClose }: PinPreviewPopoverProps) {
+export default function PinPreviewPopover({ location, position, onClose, onViewMore }: PinPreviewPopoverProps) {
   const navigate = useNavigate();
 
   const photoUrl = location.photos?.[0]?.storage_path
@@ -77,8 +78,12 @@ export default function PinPreviewPopover({ location, position, onClose }: PinPr
           <div className="flex gap-2">
             <button
               onClick={() => {
-                navigate(`/location/${location.id}`);
-                onClose();
+                if (onViewMore) {
+                  onViewMore();
+                } else {
+                  navigate(`/location/${location.id}`);
+                  onClose();
+                }
               }}
               className="flex-1 h-9 rounded-card bg-accent text-ink font-semibold text-[12px] active:scale-[.98] transition-transform duration-100"
             >

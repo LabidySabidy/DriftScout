@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useEffect, useState, useCallback } from 'react';
 import type { LocationWithSubmitter } from '../types';
@@ -11,13 +11,17 @@ interface MapViewProps {
   locations: LocationWithSubmitter[];
   center: [number, number];
   fullHeight?: boolean;
+  selectedId?: string | null;
+  onSelect?: (loc: LocationWithSubmitter, screenPos: { x: number; y: number }) => void;
+  onClose?: () => void;
+  onViewMore?: (loc: LocationWithSubmitter) => void;
 }
 
 // ── Custom marker icons ──
 function createDefaultIcon() {
   return L.divIcon({
     className: '',
-    html: '<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #0D0D0F;box-shadow:0 0 0 4px rgba(74,158,255,0.18),0 4px 12px rgba(0,0,0,0.5);"></div>',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #0D0D0F;box-shadow:0 0 0 4px rgba(74,158,255,0.18),0 4px 12px rgba(0,0,0,0.5);cursor:pointer;"></div>',
     iconSize: [14, 14],
     iconAnchor: [7, 7],
   });
@@ -26,7 +30,7 @@ function createDefaultIcon() {
 function createSelectedIcon() {
   return L.divIcon({
     className: '',
-    html: '<div style="width:28px;height:28px;border-radius:50%;background:#4A9EFF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:monospace;font-weight:bold;box-shadow:0 0 0 4px rgba(74,158,255,0.18),0 4px 12px rgba(0,0,0,0.5);animation:pin-pop 220ms ease-out;"></div>',
+    html: '<div style="width:28px;height:28px;border-radius:50%;background:#4A9EFF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:monospace;font-weight:bold;box-shadow:0 0 0 4px rgba(74,158,255,0.18),0 4px 12px rgba(0,0,0,0.5);animation:pin-pop 220ms ease-out;cursor:pointer;"></div>',
     iconSize: [28, 28],
     iconAnchor: [14, 14],
   });
@@ -44,62 +48,78 @@ function RecenterMap({ center }: { center: [number, number] }) {
   return null;
 }
 
-// ── Pin click handler (sits inside MapContainer) ──
-function PinClickHandler({
-  locations,
-  onPinClick,
-}: {
-  locations: LocationWithSubmitter[];
-  onPinClick: (loc: LocationWithSubmitter, screenPos: { x: number; y: number }) => void;
-}) {
+// ── Handles fly-to when selectedId changes externally ──
+function FlyToSelected({ selectedId, locations }: { selectedId: string | null | undefined; locations: LocationWithSubmitter[] }) {
   const map = useMap();
-
-  useMapEvents({
-    click(e) {
-      // Find nearest location within a small radius of click
-      const clickLatLng = e.latlng;
-      const threshold = 0.002; // ~200m at equator
-      const nearest = locations.find((loc) => {
-        const dlat = loc.latitude - clickLatLng.lat;
-        const dlng = loc.longitude - clickLatLng.lng;
-        return Math.sqrt(dlat * dlat + dlng * dlng) < threshold;
-      });
-
-      if (nearest) {
-        // Fly to pin
-        map.flyTo([nearest.latitude, nearest.longitude], map.getZoom(), { duration: 0.5 });
-
-        // Get container position
-        const containerPoint = map.latLngToContainerPoint([nearest.latitude, nearest.longitude]);
-        const containerEl = map.getContainer();
-        const rect = containerEl.getBoundingClientRect();
-        onPinClick(nearest, {
-          x: rect.left + containerPoint.x,
-          y: rect.top + containerPoint.y,
-        });
-      }
-    },
-  });
-
+  useEffect(() => {
+    if (!selectedId) return;
+    const loc = locations.find((l) => l.id === selectedId);
+    if (loc) {
+      map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });
+    }
+  }, [selectedId, locations, map]);
   return null;
 }
 
-export default function MapView({ locations, center, fullHeight }: MapViewProps) {
+// ── Individual marker with click handler (needs map access) ──
+function LocationMarker({
+  loc,
+  isSelected,
+  onClick,
+}: {
+  loc: LocationWithSubmitter;
+  isSelected: boolean;
+  onClick: (loc: LocationWithSubmitter, screenPos: { x: number; y: number }) => void;
+}) {
+  const map = useMap();
+
+  const handleClick = useCallback(
+    (e: L.LeafletMouseEvent) => {
+      // Fly to pin
+      map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });
+
+      // Get screen position from the native DOM event
+      const screenPos = {
+        x: e.originalEvent.clientX,
+        y: e.originalEvent.clientY,
+      };
+      onClick(loc, screenPos);
+    },
+    [loc, map, onClick],
+  );
+
+  return (
+    <Marker
+      position={[loc.latitude, loc.longitude]}
+      icon={isSelected ? selectedIcon : defaultIcon}
+      eventHandlers={{ click: handleClick }}
+    />
+  );
+}
+
+export default function MapView({ locations, center, fullHeight, selectedId, onSelect, onClose, onViewMore }: MapViewProps) {
   const isDesktop = useIsDesktop();
-  const [selected, setSelected] = useState<LocationWithSubmitter | null>(null);
+  const [internalSelected, setInternalSelected] = useState<LocationWithSubmitter | null>(null);
   const [pinPosition, setPinPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  const handlePinClick = useCallback(
+  const selected = selectedId ? locations.find((l) => l.id === selectedId) ?? null : internalSelected;
+
+  const handleMarkerClick = useCallback(
     (loc: LocationWithSubmitter, screenPos: { x: number; y: number }) => {
-      setSelected(loc);
       setPinPosition(screenPos);
+      if (onSelect) {
+        onSelect(loc, screenPos);
+      } else {
+        setInternalSelected(loc);
+      }
     },
-    [],
+    [onSelect],
   );
 
   const handleClose = useCallback(() => {
-    setSelected(null);
-  }, []);
+    setInternalSelected(null);
+    onClose?.();
+  }, [onClose]);
 
   return (
     <div className={`${fullHeight ? 'h-full' : 'h-[45vh]'} w-full rounded-xl overflow-hidden relative`}>
@@ -115,24 +135,26 @@ export default function MapView({ locations, center, fullHeight }: MapViewProps)
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <RecenterMap center={center} />
-        <PinClickHandler locations={locations} onPinClick={handlePinClick} />
+        <FlyToSelected selectedId={selectedId} locations={locations} />
 
         {locations.map((loc) => (
-          <Marker
+          <LocationMarker
             key={loc.id}
-            position={[loc.latitude, loc.longitude]}
-            icon={selected?.id === loc.id ? selectedIcon : defaultIcon}
+            loc={loc}
+            isSelected={selected?.id === loc.id}
+            onClick={handleMarkerClick}
           />
         ))}
       </MapContainer>
 
-      {/* Pin preview */}
+      {/* Pin preview — positioned near the pin */}
       {selected && (
         isDesktop ? (
           <PinPreviewPopover
             location={selected}
             position={pinPosition}
             onClose={handleClose}
+            onViewMore={onViewMore ? () => onViewMore(selected) : undefined}
           />
         ) : (
           <PinPreviewSheet
