@@ -322,7 +322,7 @@ export default function LocationDetailPage() {
         {/* Backdrop */}
         <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" onClick={() => navigate(-1)} />
         {/* Panel */}
-        <div className="fixed top-0 right-0 bottom-0 w-[480px] max-w-[100vw] bg-bg border-l border-tab-border shadow-panel z-50 flex flex-col animate-[panel-in_320ms_cubic-bezier(.32,.72,0,1)_both]">
+        <div className="fixed top-0 right-0 bottom-0 w-[66vw] max-w-[100vw] bg-bg border-l border-tab-border shadow-panel z-50 flex flex-col animate-[panel-in_320ms_cubic-bezier(.32,.72,0,1)_both]">
           {/* Close + header */}
           <div className="sticky top-0 z-10 h-12 px-3 flex items-center gap-2 bg-bg/85 backdrop-blur-xl border-b border-tab-border shrink-0">
             <button
