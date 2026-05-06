@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { useEffect, useState, useCallback } from 'react';
 import type { LocationWithSubmitter } from '../types';
@@ -60,6 +60,16 @@ function FlyToSelected({ selectedId, locations }: { selectedId: string | null | 
       map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });
     }
   }, [selectedId, locations, map]);
+  return null;
+}
+
+// ── Handles click on empty map space to deselect ──
+function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
+  useMapEvents({
+    click() {
+      onMapClick();
+    },
+  });
   return null;
 }
 
@@ -138,6 +148,7 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
         />
         <RecenterMap center={center} />
         <FlyToSelected selectedId={selectedId} locations={locations} />
+        <MapClickHandler onMapClick={handleClose} />
 
         {locations.map((loc) => (
           <LocationMarker

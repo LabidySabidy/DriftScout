@@ -20,6 +20,10 @@ export default function LocationsPage() {
     setSelectedId(loc.id);
   }, []);
 
+  const handleMapClose = useCallback(() => {
+    setSelectedId(null);
+  }, []);
+
   const filtered = searchCity.trim()
     ? locations.filter((loc) =>
         loc.city.toLowerCase().includes(searchCity.trim().toLowerCase()) ||
@@ -34,7 +38,7 @@ export default function LocationsPage() {
       : null;
 
     return (
-      <div className="flex h-dvh">
+      <div className="flex h-dvh relative">
         {/* Side panel */}
         <div className={`${panelOpen ? 'w-[360px]' : 'w-0'} shrink-0 h-dvh overflow-hidden border-r border-tab-border bg-bg transition-all duration-200`}>
           <div className="w-[360px] h-full flex flex-col">
@@ -156,7 +160,7 @@ export default function LocationsPage() {
         {/* Toggle panel button */}
         <button
           onClick={() => setPanelOpen(!panelOpen)}
-          className="absolute top-4 z-20 w-8 h-8 grid place-items-center rounded-full bg-surface border border-chip-border text-ink-mute hover:text-ink transition-colors"
+          className="absolute top-4 z-30 w-8 h-8 grid place-items-center rounded-full bg-surface border border-chip-border text-ink-mute hover:text-ink transition-colors shadow-panel"
           style={{ left: panelOpen ? '372px' : '12px' }}
         >
           {panelOpen ? '◂' : '▸'}
@@ -171,6 +175,7 @@ export default function LocationsPage() {
               fullHeight
               selectedId={selectedId}
               onSelect={handleSelect}
+              onClose={handleMapClose}
               suppressPreview
             />
           )}

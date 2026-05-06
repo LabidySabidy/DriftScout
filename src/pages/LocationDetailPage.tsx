@@ -74,7 +74,7 @@ export default function LocationDetailPage() {
 
   // ── Carousel ──
   const carousel = (
-    <div className={`relative bg-surface ${isDesktop ? 'aspect-[3/2]' : 'aspect-[4/3]'}`}>
+    <div className={`relative bg-surface ${isDesktop ? 'h-[260px]' : 'aspect-[4/3]'}`}>
       {photoUrl ? (
         <ImageWithFade src={photoUrl} alt={location.name} className="absolute inset-0" />
       ) : (
