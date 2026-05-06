@@ -1,30 +1,37 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { useLocations } from '../hooks/useLocations';
+import { useState, useEffect, useCallback } from 'react';
 import { useLikes } from '../hooks/useLikes';
 import { useNotifications } from '../hooks/useNotifications';
 import { useIsDesktop } from '../hooks/useIsDesktop';
+import { fetchAllLocations } from '../lib/locations';
 import LocationCard from '../components/LocationCard';
 import Leaderboard from '../components/Leaderboard';
+import type { LocationWithSubmitter } from '../types';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
-  const { locations, radius, setRadius, loading, refresh } = useLocations();
   const { likedIds, toggleLike } = useLikes();
   const { unreadCount } = useNotifications();
-  const [refreshing, setRefreshing] = useState(false);
+  const [locations, setLocations] = useState<LocationWithSubmitter[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
+
+  const loadLocations = useCallback(async () => {
+    setLoading(true);
+    const data = await fetchAllLocations();
+    setLocations(data);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadLocations();
+  }, [loadLocations]);
 
   const filtered = filterTag
     ? locations.filter((loc) => loc.tags?.includes(filterTag))
     : locations;
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    refresh();
-    setTimeout(() => setRefreshing(false), 600);
-  };
 
   return (
     <div className="pb-20 lg:pb-0">
@@ -34,7 +41,7 @@ export default function HomePage() {
           <h1 className="text-[22px] font-bold tracking-tight lg:font-display lg:text-[28px]" style={{ fontFamily: "'Pacifico', cursive" }}>DriftScout</h1>
           {!isDesktop && <span className="text-[9px] text-ink-mute">V1.0</span>}
         </div>
-        {/* Mobile header buttons (desktop has these in sidebar) */}
+        {/* Mobile header buttons */}
         {!isDesktop && (
           <div className="flex items-center gap-3">
             <button onClick={() => navigate('/notifications')} className="relative p-1">
@@ -56,7 +63,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Search + filters */}
+      {/* Search bar */}
       <div className="px-4 pb-3 flex items-center gap-3 lg:px-0 lg:max-w-[680px] lg:mx-auto">
         <div className="flex-1 bg-surface rounded-card px-4 py-2.5 flex items-center gap-2 cursor-pointer" onClick={() => navigate('/locations')}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
@@ -65,11 +72,10 @@ export default function HomePage() {
           <span className="text-[15px] text-ink-mute">Search city or spot...</span>
         </div>
         <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="bg-surface rounded-card px-4 py-2.5 text-sm font-medium text-ink"
+          onClick={loadLocations}
+          className="bg-surface rounded-card px-4 py-2.5 text-sm font-medium text-ink active:scale-[.97] transition-transform duration-100"
         >
-          Filters
+          Refresh
         </button>
       </div>
 
@@ -79,7 +85,7 @@ export default function HomePage() {
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
         </svg>
         <span className="text-[13px] text-ink-mute">
-          <strong className="text-ink">{filtered.length}</strong> spots found within {radius} miles.
+          <strong className="text-ink">{filtered.length}</strong> spots · newest first
           {filterTag && (
             <>
               {' '}<span>· #{filterTag}</span>
@@ -89,15 +95,8 @@ export default function HomePage() {
         </span>
       </div>
 
-      {/* Radius */}
-      <div className="px-4 pb-3 flex items-center gap-2 lg:max-w-[680px] lg:mx-auto">
-        <span className="text-xs text-ink-mute">{radius} mi</span>
-        <input type="range" min={5} max={100} step={5} value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="flex-1 accent-ink h-1" />
-      </div>
-
       {/* Content: feed + optional leaderboard sidebar */}
       <div className={`lg:flex lg:gap-8 ${isDesktop ? 'lg:max-w-[1100px] lg:mx-auto lg:px-6 lg:py-8' : ''}`}>
-        {/* Feed */}
         <div className="px-4 lg:flex-1 lg:max-w-[680px] lg:mx-auto lg:px-0">
           {loading ? (
             <div className="space-y-6">
@@ -108,38 +107,27 @@ export default function HomePage() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-16 text-ink-mute">
               <p className="text-lg mb-2">No spots found</p>
-              <p className="text-sm">{filterTag ? 'Try removing the tag filter' : 'Try increasing the search radius'}</p>
+              <p className="text-sm">{filterTag ? 'Try removing the tag filter' : 'Check back soon for new spots'}</p>
             </div>
           ) : (
-            <>
-              {filtered.map((loc) => (
-                <LocationCard
-                  key={loc.id}
-                  location={loc}
-                  isLiked={likedIds.has(loc.id)}
-                  onToggleLike={() => toggleLike(loc.id)}
-                  onTagClick={(tag) => setFilterTag(tag)}
-                  onClick={() => navigate(`/location/${loc.id}`)}
-                />
-              ))}
-              {/* Leaderboard inline on mobile and narrow desktop */}
-              {!isDesktop && (
-                <div className="border-t border-tab-border mt-4 pt-4">
-                  <Leaderboard />
-                </div>
-              )}
-            </>
+            filtered.map((loc) => (
+              <LocationCard
+                key={loc.id}
+                location={loc}
+                isLiked={likedIds.has(loc.id)}
+                onToggleLike={() => toggleLike(loc.id)}
+                onTagClick={(tag) => setFilterTag(tag)}
+                onClick={() => navigate(`/location/${loc.id}`)}
+              />
+            ))
           )}
-        </div>
-
-        {/* Leaderboard sidebar — wide desktop only */}
-        {isDesktop && (
-          <div className="hidden xl:block w-[380px] shrink-0">
-            <div className="sticky top-8">
+          {/* Leaderboard — mobile only */}
+          {!isDesktop && filtered.length > 0 && (
+            <div className="border-t border-tab-border mt-4 pt-4">
               <Leaderboard />
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

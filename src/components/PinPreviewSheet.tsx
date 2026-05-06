@@ -57,7 +57,7 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-30 bg-surface/95 backdrop-blur-xl border-t border-chip-border rounded-t-sheet shadow-sheet overflow-hidden"
+        className="fixed inset-x-0 bottom-0 z-[9999] bg-surface/95 backdrop-blur-xl border-t border-chip-border rounded-t-sheet shadow-sheet overflow-hidden"
         initial={{ y: height }}
         animate={{ y: 0 }}
         exit={{ y: height }}

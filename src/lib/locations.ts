@@ -1,6 +1,20 @@
 import { supabase } from '../lib/supabase';
 import type { LocationWithSubmitter } from '../types';
 
+export async function fetchAllLocations(): Promise<LocationWithSubmitter[]> {
+  const { data, error } = await supabase
+    .from('locations')
+    .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching locations:', error);
+    return [];
+  }
+
+  return data as LocationWithSubmitter[];
+}
+
 export async function fetchLocations(
   lat: number,
   lng: number,

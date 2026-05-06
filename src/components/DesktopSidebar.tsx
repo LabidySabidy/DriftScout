@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
+import { useLeaderboard } from '../hooks/useLeaderboard';
 import NotificationsDropdown from '../pages/NotificationsDropdown';
 
 interface DesktopSidebarProps {
@@ -21,6 +22,7 @@ export default function DesktopSidebar({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { notifications, markAllRead } = useNotifications();
+  const { entries: leaderboard } = useLeaderboard();
 
   const navItems = [
     {
@@ -139,6 +141,27 @@ export default function DesktopSidebar({
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Mini leaderboard */}
+      {leaderboard.length > 0 && (
+        <div className="mb-1">
+          <p className="text-[10px] uppercase tracking-[.08em] text-ink-dim font-mono px-2 mb-1.5">Top Scouts</p>
+          <div className="space-y-0.5">
+            {leaderboard.slice(0, 5).map((entry, i) => (
+              <div key={entry.submitter.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface transition-colors">
+                <span className="text-[10px] font-mono text-ink-dim w-4 shrink-0">
+                  {i === 0 ? '👑' : i + 1}
+                </span>
+                {entry.submitter.avatar_url && (
+                  <img src={entry.submitter.avatar_url} alt="" className="w-5 h-5 rounded-full shrink-0" />
+                )}
+                <span className="text-[11px] text-ink-mute truncate flex-1">{entry.submitter.username}</span>
+                <span className="text-[10px] font-mono text-ink-dim">{entry.spot_count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* User row */}
       <button

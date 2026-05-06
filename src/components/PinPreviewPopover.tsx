@@ -29,7 +29,7 @@ export default function PinPreviewPopover({ location, position, onClose, onViewM
 
   return (
     <div
-      className="fixed z-30 w-[320px] rounded-card bg-surface/95 backdrop-blur-xl border border-chip-border shadow-panel overflow-hidden"
+      className="fixed z-[9999] w-[320px] rounded-card bg-surface/95 backdrop-blur-xl border border-chip-border shadow-panel overflow-hidden"
       style={{
         left: position.x,
         top: position.y,
