@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from '../hooks/useLocation';
 import { useLikes } from '../hooks/useLikes';
@@ -41,6 +41,23 @@ export default function LocationDetailPage() {
   const { uploadPhoto, uploading: photoUploading } = usePhotoContribution();
   const addPhotoRef = useRef<HTMLInputElement>(null);
   const [communityPhotos, setCommunityPhotos] = useState<LocationPhoto[]>([]);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Compute photos early so hooks can reference them
+  const photos = location?.photos ?? [];
+  const allPhotos = communityPhotos.length > 0 ? communityPhotos : photos;
+
+  // Keyboard navigation for lightbox (must be before early returns)
+  useEffect(() => {
+    if (!lightboxOpen || allPhotos.length <= 1) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') setPhotoIndex((i) => (i - 1 + allPhotos.length) % allPhotos.length);
+      if (e.key === 'ArrowRight') setPhotoIndex((i) => (i + 1) % allPhotos.length);
+      if (e.key === 'Escape') setLightboxOpen(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [lightboxOpen, allPhotos.length]);
 
   if (loading) {
     return (
@@ -62,9 +79,6 @@ export default function LocationDetailPage() {
   }
 
   const isLiked = likedIds.has(location.id);
-  const photos = location.photos ?? [];
-  // Merge original + community photos
-  const allPhotos = communityPhotos.length > 0 ? communityPhotos : photos;
   const photoUrl = allPhotos[photoIndex]
     ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${allPhotos[photoIndex].storage_path}`
     : null;
@@ -73,9 +87,14 @@ export default function LocationDetailPage() {
 
   // ── Carousel ──
   const carousel = (
-    <div className={`relative bg-surface ${isDesktop ? 'h-[260px]' : 'aspect-[4/3]'}`}>
+    <div className={`relative bg-surface ${isDesktop ? 'h-[420px]' : 'aspect-[4/3]'}`}>
       {photoUrl ? (
-        <img src={photoUrl} alt={location.name} className="absolute inset-0 w-full h-full object-cover" />
+        <img
+          src={photoUrl}
+          alt={location.name}
+          className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
+          onClick={() => setLightboxOpen(true)}
+        />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-ink-mute">No photo</div>
       )}
@@ -314,10 +333,55 @@ export default function LocationDetailPage() {
     </div>
   );
 
+  // ── Lightbox (full-screen photo viewer) ──
+  const lightbox = lightboxOpen && photoUrl ? (
+    <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center" onClick={() => setLightboxOpen(false)}>
+      {/* Close */}
+      <button
+        onClick={() => setLightboxOpen(false)}
+        className="absolute top-4 right-4 z-10 w-10 h-10 grid place-items-center rounded-full bg-black/50 text-ink hover:bg-black/70 transition-colors"
+      >
+        ✕
+      </button>
+      {/* Photo count */}
+      {allPhotos.length > 1 && (
+        <span className="absolute top-4 left-4 z-10 text-[13px] font-mono text-ink/70 bg-black/50 px-3 py-1 rounded-pill">
+          {photoIndex + 1} / {allPhotos.length}
+        </span>
+      )}
+      {/* Previous */}
+      {allPhotos.length > 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setPhotoIndex((i) => (i - 1 + allPhotos.length) % allPhotos.length); }}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 grid place-items-center rounded-full bg-black/50 text-ink hover:bg-black/70 transition-colors text-2xl"
+        >
+          ‹
+        </button>
+      )}
+      {/* Next */}
+      {allPhotos.length > 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setPhotoIndex((i) => (i + 1) % allPhotos.length); }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 grid place-items-center rounded-full bg-black/50 text-ink hover:bg-black/70 transition-colors text-2xl"
+        >
+          ›
+        </button>
+      )}
+      {/* Image */}
+      <img
+        src={photoUrl}
+        alt={location.name}
+        className="max-w-full max-h-full object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  ) : null;
+
   // ── Desktop: slide-in panel ──
   if (isDesktop) {
     return (
       <>
+        {lightbox}
         {/* Backdrop */}
         <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" onClick={() => navigate(-1)} />
         {/* Panel */}
@@ -355,6 +419,7 @@ export default function LocationDetailPage() {
         }
       }}
     >
+      {lightbox}
       {/* Sticky header */}
       <div className="sticky top-0 z-10 h-12 px-3 flex items-center gap-2 bg-bg/85 backdrop-blur-xl border-b border-tab-border">
         <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 grid place-items-center rounded-full hover:bg-surface text-ink-mute active:scale-[.97] transition-transform duration-100">
