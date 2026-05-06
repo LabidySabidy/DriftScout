@@ -112,10 +112,33 @@ export default function ProfilePage() {
           Submit your first spot
         </button>
       </div>
-    ) : (
-      <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-5">
+    ) : isDesktop ? (
+      <div className="grid grid-cols-2 xl:grid-cols-3 gap-5">
         {submitted.map((loc) => (
           <LocationCard key={loc.id} location={loc} onClick={() => navigate(`/location/${loc.id}`)} />
+        ))}
+      </div>
+    ) : (
+      <div className="divide-y divide-tab-border">
+        {submitted.map((loc) => (
+          <div key={loc.id} onClick={() => navigate(`/location/${loc.id}`)} className="flex gap-3 py-3 cursor-pointer active:scale-[.98] transition-transform duration-100">
+            {loc.photos?.[0]?.storage_path ? (
+              <img src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${loc.photos[0].storage_path}`} alt="" className="w-[78px] h-[78px] rounded object-cover bg-surface shrink-0" />
+            ) : (
+              <div className="w-[78px] h-[78px] rounded bg-surface shrink-0" />
+            )}
+            <div className="min-w-0 flex-1 flex flex-col justify-center">
+              <p className="text-[14px] font-semibold text-ink truncate">{loc.name}</p>
+              <p className="text-[12px] text-ink-mute font-mono mt-0.5">{loc.city}, {loc.state}</p>
+              {loc.tags && loc.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {loc.tags.slice(0, 3).map((tag) => (
+                    <span key={tag} className="text-[10px] text-ink-mute bg-surface px-2 py-0.5 rounded-pill border border-chip-border">#{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         ))}
       </div>
     )
@@ -126,10 +149,33 @@ export default function ProfilePage() {
         Browse spots
       </button>
     </div>
-  ) : (
-    <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-5">
+  ) : isDesktop ? (
+    <div className="grid grid-cols-2 xl:grid-cols-3 gap-5">
       {liked.map((loc) => (
         <LocationCard key={loc.id} location={loc} isLiked onToggleLike={() => navigate(`/location/${loc.id}`)} onClick={() => navigate(`/location/${loc.id}`)} />
+      ))}
+    </div>
+  ) : (
+    <div className="divide-y divide-tab-border">
+      {liked.map((loc) => (
+        <div key={loc.id} onClick={() => navigate(`/location/${loc.id}`)} className="flex gap-3 py-3 cursor-pointer active:scale-[.98] transition-transform duration-100">
+          {loc.photos?.[0]?.storage_path ? (
+            <img src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${loc.photos[0].storage_path}`} alt="" className="w-[78px] h-[78px] rounded object-cover bg-surface shrink-0" />
+          ) : (
+            <div className="w-[78px] h-[78px] rounded bg-surface shrink-0" />
+          )}
+          <div className="min-w-0 flex-1 flex flex-col justify-center">
+            <p className="text-[14px] font-semibold text-ink truncate">{loc.name}</p>
+            <p className="text-[12px] text-ink-mute font-mono mt-0.5">{loc.city}, {loc.state}</p>
+            {loc.tags && loc.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {loc.tags.slice(0, 3).map((tag) => (
+                  <span key={tag} className="text-[10px] text-ink-mute bg-surface px-2 py-0.5 rounded-pill border border-chip-border">#{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -156,9 +202,26 @@ export default function ProfilePage() {
 
   // ── Mobile ──
   return (
-    <div className="px-4 pt-3 pb-20">
-      {profileHeader}
-      <button onClick={signOut} className="text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 active:scale-[.97] transition-transform duration-100">
+    <div className="px-4 pt-4 pb-24">
+      <div className="flex flex-col items-center gap-3 mb-2">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" className="w-[88px] h-[88px] rounded-full bg-surface ring-2 ring-chip-border object-cover" />
+        ) : (
+          <div className="w-[88px] h-[88px] rounded-full bg-surface ring-2 ring-chip-border" />
+        )}
+        <h1 className="font-display font-bold text-[22px] text-ink">{displayName}</h1>
+      </div>
+      <div className="flex justify-center gap-8 mt-3">
+        <div className="text-center">
+          <p className="font-display font-bold text-[20px] text-ink">{submitted.length}</p>
+          <p className="text-[10px] uppercase tracking-[.08em] text-ink-mute font-mono mt-0.5">Spots</p>
+        </div>
+        <div className="text-center">
+          <p className="font-display font-bold text-[20px] text-ink">{liked.length}</p>
+          <p className="text-[10px] uppercase tracking-[.08em] text-ink-mute font-mono mt-0.5">Liked</p>
+        </div>
+      </div>
+      <button onClick={signOut} className="text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 mt-4 active:scale-[.97] transition-transform duration-100">
         Sign out
       </button>
       {tabs}

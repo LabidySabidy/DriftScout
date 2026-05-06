@@ -15,6 +15,7 @@ export default function LocationsPage() {
   const [searchCity, setSearchCity] = useState('');
   const [panelOpen, setPanelOpen] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
   const handleSelect = useCallback((loc: LocationWithSubmitter) => {
     setSelectedId(loc.id);
@@ -176,7 +177,6 @@ export default function LocationsPage() {
               selectedId={selectedId}
               onSelect={handleSelect}
               onClose={handleMapClose}
-              suppressPreview
             />
           )}
         </div>
@@ -186,76 +186,79 @@ export default function LocationsPage() {
 
   // ── Mobile layout ──
   return (
-    <div className="flex flex-col h-full">
-      {/* Fixed header */}
-      <div className="px-4 pt-3 pb-2 space-y-2">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 bg-surface rounded-card px-4 py-2.5 flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              type="text"
-              value={searchCity}
-              onChange={(e) => setSearchCity(e.target.value)}
-              placeholder="Search city or spot..."
-              className="flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-mute"
-            />
-          </div>
-          <button className="bg-surface rounded-card px-4 py-2.5 text-sm font-medium text-ink">
-            Filters
-          </button>
-        </div>
-      </div>
-
-      {/* Results summary */}
-      <div className="px-4 py-2 flex items-center justify-center gap-1.5">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B8AFF" strokeWidth="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+    <div className="flex flex-col h-dvh">
+      {/* Search bar */}
+      <div className="mx-4 mt-3 h-11 rounded-card bg-surface border border-chip-border px-3.5 flex items-center gap-2 shrink-0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <span className="text-[13px] text-ink-mute">
-          <strong className="text-ink">{filtered.length}</strong> spots found within {radius} miles.
-        </span>
+        <input
+          type="text"
+          value={searchCity}
+          onChange={(e) => setSearchCity(e.target.value)}
+          placeholder="Search city or spot..."
+          className="flex-1 bg-transparent text-[14px] text-ink outline-none placeholder:text-ink-dim"
+        />
       </div>
 
-      {/* Map */}
-      {userCoords && (
-        <div className="h-48 mx-4 rounded-card overflow-hidden mb-3">
-          <MapView locations={filtered} center={userCoords} />
+      {/* Map/List toggle */}
+      <div className="mx-4 mt-2.5 p-0.5 rounded-card bg-surface border border-chip-border flex shrink-0">
+        <button
+          onClick={() => setViewMode('map')}
+          className={`flex-1 text-center py-2 rounded-[6px] text-[12px] font-mono font-bold transition-colors ${viewMode === 'map' ? 'bg-accent text-ink' : 'text-ink-mute'}`}
+        >
+          Map
+        </button>
+        <button
+          onClick={() => setViewMode('list')}
+          className={`flex-1 text-center py-2 rounded-[6px] text-[12px] font-mono font-bold transition-colors ${viewMode === 'list' ? 'bg-accent text-ink' : 'text-ink-mute'}`}
+        >
+          List
+        </button>
+      </div>
+
+      {/* Map view */}
+      {viewMode === 'map' && userCoords && (
+        <div className="flex-1 mx-4 mt-3 mb-0 rounded-card overflow-hidden border border-chip-border">
+          <MapView
+            locations={filtered}
+            center={userCoords}
+            fullHeight
+            selectedId={selectedId}
+            onSelect={handleSelect}
+            onClose={handleMapClose}
+          />
         </div>
       )}
 
-      {/* Radius */}
-      <div className="px-4 pb-2 flex items-center gap-2">
-        <span className="text-xs text-ink-mute">{radius} mi</span>
-        <input type="range" min={5} max={100} step={5} value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="flex-1 accent-ink h-1" />
-      </div>
-
-      {/* Feed */}
-      <div className="flex-1 overflow-y-auto px-4 pb-20">
-        {loading ? (
-          <div className="space-y-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-surface h-[50vh] rounded-lg animate-pulse" />
-            ))}
+      {/* List view */}
+      {viewMode === 'list' && (
+        <>
+          <div className="px-4 py-2 flex items-center gap-2 shrink-0">
+            <span className="text-xs text-ink-mute">{radius} mi</span>
+            <input type="range" min={5} max={100} step={5} value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="flex-1 accent-ink h-1" />
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-ink-mute">
-            <p className="text-lg mb-2">No spots found</p>
-            <p className="text-sm">Try increasing the search radius</p>
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-20">
+            {loading ? (
+              <div className="space-y-6">
+                {[...Array(3)].map((_, i) => (<div key={i} className="bg-surface h-[50vh] rounded-lg animate-pulse" />))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-12 text-ink-mute"><p className="text-lg mb-2">No spots found</p></div>
+            ) : (
+              filtered.map((loc) => (
+                <LocationCard
+                  key={loc.id}
+                  location={loc}
+                  isLiked={likedIds.has(loc.id)}
+                  onToggleLike={() => toggleLike(loc.id)}
+                  onClick={() => navigate(`/location/${loc.id}`)}
+                />
+              ))
+            )}
           </div>
-        ) : (
-          filtered.map((loc) => (
-            <LocationCard
-              key={loc.id}
-              location={loc}
-              isLiked={likedIds.has(loc.id)}
-              onToggleLike={() => toggleLike(loc.id)}
-              onClick={() => navigate(`/location/${loc.id}`)}
-            />
-          ))
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
