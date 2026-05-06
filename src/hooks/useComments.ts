@@ -11,11 +11,11 @@ export function useComments(locationId: string) {
   const fetchComments = useCallback(() => {
     supabase
       .from('comments')
-      .select('*, user:profiles(id, username, avatar_url)')
+      .select('*, user:profiles!comments_user_id_fkey(id, username, avatar_url)')
       .eq('location_id', locationId)
       .order('created_at', { ascending: true })
       .then(({ data }) => {
-        if (data) setComments(data as Comment[]);
+        if (data) setComments(data as unknown as Comment[]);
         setLoading(false);
       });
   }, [locationId]);
@@ -29,11 +29,11 @@ export function useComments(locationId: string) {
     const { data, error } = await supabase
       .from('comments')
       .insert({ location_id: locationId, user_id: user.id, body: body.trim() })
-      .select('*, user:profiles(id, username, avatar_url)')
+      .select('*, user:profiles!comments_user_id_fkey(id, username, avatar_url)')
       .single();
 
     if (!error && data) {
-      setComments((prev) => [...prev, data as Comment]);
+      setComments((prev) => [...prev, data as unknown as Comment]);
     }
   };
 

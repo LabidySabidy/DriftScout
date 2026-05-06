@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { useLocation } from '../hooks/useLocation';
 import { useLikes } from '../hooks/useLikes';
 import { useComments } from '../hooks/useComments';
+import { useReports } from '../hooks/useReports';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 const permissionLabels: Record<string, string> = {
   none: 'Public access — no permission needed',
@@ -20,6 +22,10 @@ export default function LocationDetailPage() {
   const { user } = useAuth();
   const [commentText, setCommentText] = useState('');
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetail, setReportDetail] = useState('');
+  const { submitReport, submitting: reportSubmitting } = useReports(id!);
 
   if (loading) {
     return (
@@ -164,6 +170,62 @@ export default function LocationDetailPage() {
                 Discovered {new Date(location.created_at).toLocaleDateString()}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Actions row */}
+        <div className="flex gap-2 pt-3">
+          {/* Report */}
+          <button
+            onClick={() => setShowReport(!showReport)}
+            className="text-xs text-zinc-600 hover:text-zinc-400"
+          >
+            ⚑ Report
+          </button>
+          {/* Moderation (submitter only) */}
+          {user?.id === location.submitter_id && location.moderation_status !== 'rejected' && (
+            <button
+              onClick={async () => {
+                await supabase.from('locations').update({ moderation_status: 'rejected' }).eq('id', location.id);
+                navigate('/', { replace: true });
+              }}
+              className="text-xs text-red-600 hover:text-red-400"
+            >
+              ✕ Remove
+            </button>
+          )}
+        </div>
+
+        {/* Report form */}
+        {showReport && (
+          <div className="mt-3 p-3 bg-zinc-900 rounded-lg space-y-2">
+            <p className="text-sm text-zinc-400">Report this spot</p>
+            <select
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              className="w-full bg-zinc-800 rounded px-3 py-2 text-sm text-white"
+            >
+              <option value="">Select reason</option>
+              <option value="inaccurate">Inaccurate info</option>
+              <option value="unsafe">Unsafe conditions</option>
+              <option value="private_property">Private property</option>
+              <option value="spam">Spam</option>
+              <option value="other">Other</option>
+            </select>
+            <input
+              type="text"
+              value={reportDetail}
+              onChange={(e) => setReportDetail(e.target.value)}
+              placeholder="Details (optional)"
+              className="w-full bg-zinc-800 rounded px-3 py-2 text-sm text-white outline-none"
+            />
+            <button
+              onClick={() => { submitReport(reportReason, reportDetail); setShowReport(false); }}
+              disabled={!reportReason || reportSubmitting}
+              className="bg-red-600 text-white text-sm px-4 py-1.5 rounded font-medium disabled:opacity-40"
+            >
+              Submit Report
+            </button>
           </div>
         )}
 

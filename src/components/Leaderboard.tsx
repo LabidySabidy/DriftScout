@@ -1,7 +1,9 @@
 import { useLeaderboard } from '../hooks/useLeaderboard';
+import { useFollows } from '../hooks/useFollows';
 
 export default function Leaderboard() {
   const { entries, loading } = useLeaderboard();
+  const { following, toggleFollow } = useFollows();
 
   if (loading) {
     return (
@@ -44,6 +46,16 @@ export default function Leaderboard() {
                 {entry.submitter.username}
               </p>
             </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleFollow(entry.submitter.id); }}
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                following.has(entry.submitter.id)
+                  ? 'bg-white text-black'
+                  : 'bg-zinc-800 text-zinc-400'
+              }`}
+            >
+              {following.has(entry.submitter.id) ? 'Following' : 'Follow'}
+            </button>
             <span className="text-xs text-zinc-400 shrink-0">
               {entry.spot_count} spot{entry.spot_count !== 1 ? 's' : ''}
             </span>

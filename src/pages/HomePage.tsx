@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useLocations } from '../hooks/useLocations';
 import { useLikes } from '../hooks/useLikes';
+import { useNotifications } from '../hooks/useNotifications';
 import MapView from '../components/MapView';
 import LocationCard from '../components/LocationCard';
 import Leaderboard from '../components/Leaderboard';
@@ -13,6 +14,7 @@ export default function HomePage() {
   const { locations, userCoords, radius, setRadius, loading, geoError, refresh } =
     useLocations();
   const { likedIds, toggleLike } = useLikes();
+  const { unreadCount } = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [searchCity, setSearchCity] = useState('');
@@ -47,6 +49,17 @@ export default function HomePage() {
               className="text-xs text-zinc-400 hover:text-white"
             >
               {showMap ? 'Hide Map' : 'Show Map'}
+            </button>
+            <button
+              onClick={() => navigate('/notifications')}
+              className="relative text-zinc-400 hover:text-white"
+            >
+              🔔
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  {unreadCount}
+                </span>
+              )}
             </button>
             {user?.user_metadata?.avatar_url && (
               <img
