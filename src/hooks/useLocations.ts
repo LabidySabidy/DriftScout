@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchLocations } from '../lib/locations';
 import type { LocationWithSubmitter } from '../types';
 
@@ -45,6 +45,15 @@ export function useLocations() {
     });
   }, [userCoords, radius]);
 
+  const refresh = useCallback(() => {
+    if (!userCoords) return;
+    setLoading(true);
+    fetchLocations(userCoords[0], userCoords[1], radius).then((data) => {
+      setLocations(data);
+      setLoading(false);
+    });
+  }, [userCoords, radius]);
+
   return {
     locations,
     userCoords,
@@ -52,5 +61,6 @@ export function useLocations() {
     setRadius,
     loading,
     geoError,
+    refresh,
   };
 }

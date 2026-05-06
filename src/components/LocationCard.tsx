@@ -5,6 +5,7 @@ interface LocationCardProps {
   onClick?: () => void;
   isLiked?: boolean;
   onToggleLike?: () => void;
+  onTagClick?: (tag: string) => void;
 }
 
 const permissionColors: Record<string, string> = {
@@ -19,7 +20,7 @@ const permissionLabels: Record<string, string> = {
   high: 'Highly secure',
 };
 
-export default function LocationCard({ location, onClick, isLiked, onToggleLike }: LocationCardProps) {
+export default function LocationCard({ location, onClick, isLiked, onToggleLike, onTagClick }: LocationCardProps) {
   const photoUrl =
     location.photos?.[0]?.storage_path
       ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${location.photos[0].storage_path}`
@@ -81,7 +82,12 @@ export default function LocationCard({ location, onClick, isLiked, onToggleLike 
           {location.tags?.slice(0, 4).map((tag) => (
             <span
               key={tag}
-              className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full"
+              onClick={(e) => { e.stopPropagation(); onTagClick?.(tag); }}
+              className={`text-xs px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
+                onTagClick
+                  ? 'bg-zinc-800 text-zinc-400 hover:bg-white hover:text-black'
+                  : 'bg-zinc-800 text-zinc-400'
+              }`}
             >
               #{tag}
             </span>

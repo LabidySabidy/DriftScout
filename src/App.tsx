@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import AuthCallback from './pages/AuthCallback';
 import LocationDetailPage from './pages/LocationDetailPage';
 import SubmitLocationPage from './pages/SubmitLocationPage';
+import ProfilePage from './pages/ProfilePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -48,6 +49,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <SubmitLocationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
