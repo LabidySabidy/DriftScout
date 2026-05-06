@@ -5,6 +5,7 @@ export async function fetchAllLocations(): Promise<LocationWithSubmitter[]> {
   const { data, error } = await supabase
     .from('locations')
     .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
+    .neq('moderation_status', 'rejected')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -23,6 +24,7 @@ export async function fetchLocations(
   const { data, error } = await supabase
     .from('locations')
     .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
+    .neq('moderation_status', 'rejected')
     .order('created_at', { ascending: false });
 
   if (error) {

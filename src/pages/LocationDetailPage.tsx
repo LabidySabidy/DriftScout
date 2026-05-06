@@ -270,7 +270,18 @@ export default function LocationDetailPage() {
       )}
 
       {/* Community photos */}
-      <CommunityPhotos locationId={id!} />
+      <CommunityPhotos
+        locationId={id!}
+        onPhotoClick={(url) => {
+          const idx = allPhotos.findIndex(
+            (p) => `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${p.storage_path}` === url
+          );
+          if (idx !== -1) {
+            setPhotoIndex(idx);
+            setLightboxOpen(true);
+          }
+        }}
+      />
 
       {/* Comments */}
       <div className="pt-4 border-t border-chip-border">

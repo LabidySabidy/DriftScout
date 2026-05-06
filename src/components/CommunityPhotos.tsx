@@ -10,9 +10,10 @@ interface LocationPhoto {
 
 interface CommunityPhotosProps {
   locationId: string;
+  onPhotoClick?: (photoUrl: string) => void;
 }
 
-export default function CommunityPhotos({ locationId }: CommunityPhotosProps) {
+export default function CommunityPhotos({ locationId, onPhotoClick }: CommunityPhotosProps) {
   const [photos, setPhotos] = useState<LocationPhoto[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -63,8 +64,9 @@ export default function CommunityPhotos({ locationId }: CommunityPhotosProps) {
             key={photo.id}
             src={photoUrl(photo)}
             alt=""
-            className="aspect-square rounded bg-surface object-cover"
+            className="aspect-square rounded bg-surface object-cover cursor-pointer hover:opacity-80 transition-opacity"
             loading="lazy"
+            onClick={() => onPhotoClick?.(photoUrl(photo))}
           />
         ))}
         {hasMore && !expanded && (
