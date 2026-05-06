@@ -28,24 +28,26 @@ export default function PinPreviewPopover({ location, position, onClose, onViewM
     : null;
 
   return (
-    <>
-      {/* Click-outside backdrop */}
-      <div className="fixed inset-0 z-20" onClick={onClose} />
-
-      {/* Popover */}
-      <div
-        className="absolute z-30 w-[320px] rounded-card bg-surface/95 backdrop-blur-xl border border-chip-border shadow-panel overflow-hidden"
-        style={{
-          left: position.x,
-          top: position.y,
-          transform: 'translate(-50%, calc(-100% - 12px))',
-        }}
-      >
+    <div
+      className="fixed z-30 w-[320px] rounded-card bg-surface/95 backdrop-blur-xl border border-chip-border shadow-panel overflow-hidden"
+      style={{
+        left: position.x,
+        top: position.y,
+        transform: 'translate(-50%, calc(-100% - 12px))',
+      }}
+    >
         {/* Arrow */}
         <div className="absolute left-1/2 -bottom-1.5 w-3 h-3 -translate-x-1/2 rotate-45 bg-surface border-r border-b border-chip-border" />
 
         {/* Content */}
-        <div className="p-3">
+        <div className="p-3 relative">
+          {/* Close button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            className="absolute top-1 right-1 w-6 h-6 grid place-items-center rounded-full hover:bg-surface-2 text-ink-dim hover:text-ink transition-colors z-10"
+          >
+            ✕
+          </button>
           {photoUrl && (
             <img
               src={photoUrl}
@@ -103,6 +105,5 @@ export default function PinPreviewPopover({ location, position, onClose, onViewM
           </div>
         </div>
       </div>
-    </>
   );
 }
