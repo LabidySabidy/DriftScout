@@ -1,5 +1,4 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../hooks/useAuth';
@@ -37,18 +36,9 @@ export default function AppShell() {
     // ── Mobile layout ──
     return (
       <div className="min-h-dvh bg-bg text-ink font-sans flex flex-col">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
-            className="flex-1 overflow-y-auto overscroll-contain"
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          <Outlet />
+        </div>
 
         {/* Bottom Tab Bar — hidden on full-screen pages */}
         {!hideTabBar && (
