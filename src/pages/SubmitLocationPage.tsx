@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useIsDesktop } from '../hooks/useIsDesktop';
@@ -11,6 +12,14 @@ const AVAILABLE_TAGS = [
   'large-lot', 'small-lot', 'parking-garage', 'industrial',
   'clean', 'abandoned', 'legal', 'community', 'gravel',
 ];
+
+// Custom marker icon for submit map (avoids Leaflet default icon bundler issue)
+const pickerIcon = L.divIcon({
+  className: '',
+  html: '<div style="width:20px;height:20px;border-radius:50%;background:#4A9EFF;border:3px solid #fff;box-shadow:0 0 0 4px rgba(74,158,255,0.18),0 4px 12px rgba(0,0,0,0.5);"></div>',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+});
 
 function LocationPicker({ onPick }: { onPick: (lat: number, lng: number) => void }) {
   useMapEvents({
@@ -29,11 +38,12 @@ export default function SubmitLocationPage() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
   const [state, setState] = useState('TX');
   const [lat, setLat] = useState(32.7767);
   const [lng, setLng] = useState(-96.7970);
-  const [accessFee, setAccessFee] = useState('');
+  const [latInput, setLatInput] = useState('32.77670');
+  const [lngInput, setLngInput] = useState('-96.79700');
   const [permissionLevel, setPermissionLevel] = useState('none');
   const [tags, setTags] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -46,9 +56,28 @@ export default function SubmitLocationPage() {
     );
   };
 
+  const handleMapPick = (newLat: number, newLng: number) => {
+    setLat(newLat);
+    setLng(newLng);
+    setLatInput(newLat.toFixed(5));
+    setLngInput(newLng.toFixed(5));
+  };
+
+  const handleLatChange = (val: string) => {
+    setLatInput(val);
+    const parsed = parseFloat(val);
+    if (!isNaN(parsed)) setLat(parsed);
+  };
+
+  const handleLngChange = (val: string) => {
+    setLngInput(val);
+    const parsed = parseFloat(val);
+    if (!isNaN(parsed)) setLng(parsed);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !name.trim() || !city.trim()) return;
+    if (!user || !name.trim()) return;
 
     setSubmitting(true);
     setError('');
@@ -61,9 +90,9 @@ export default function SubmitLocationPage() {
           description: description.trim(),
           latitude: lat,
           longitude: lng,
-          city: city.trim(),
+          city: address.trim() || 'Unknown',
           state: state.trim(),
-          access_fee: accessFee ? parseFloat(accessFee) : null,
+          access_fee: null,
           permission_level: permissionLevel,
           tags,
           submitter_id: user.id,
@@ -114,10 +143,22 @@ export default function SubmitLocationPage() {
         />
       </div>
 
+      {/* Address */}
+      <div>
+        <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">Address</label>
+        <input
+          type="text"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
+          placeholder="e.g. 123 Main St, Dallas, TX"
+        />
+      </div>
+
       {/* Map picker */}
       <div>
         <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">Tap the map to set location</label>
-        <div className={`rounded-card overflow-hidden border border-chip-border ${isDesktop ? 'h-[400px]' : 'h-48'}`}>
+        <div className={`rounded-card overflow-hidden border border-chip-border ${isDesktop ? 'h-[300px]' : 'h-48'}`}>
           <MapContainer
             center={[lat, lng]}
             zoom={10}
@@ -128,51 +169,43 @@ export default function SubmitLocationPage() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <LocationPicker onPick={(la, ln) => { setLat(la); setLng(ln); }} />
-            <Marker position={[lat, lng]} />
+            <LocationPicker onPick={handleMapPick} />
+            <Marker position={[lat, lng]} icon={pickerIcon} />
           </MapContainer>
         </div>
-        <p className="text-xs text-ink-mute font-mono mt-1">
-          {lat.toFixed(5)}, {lng.toFixed(5)}
-        </p>
       </div>
 
-      {/* City + State */}
+      {/* Lat / Lng inputs */}
       <div className="grid grid-cols-2 gap-2.5">
         <div>
-          <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">City *</label>
+          <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">Latitude</label>
           <input
             type="text"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
-            placeholder="Dallas"
-            required
+            value={latInput}
+            onChange={(e) => handleLatChange(e.target.value)}
+            className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink font-mono focus:outline-none focus:border-accent"
           />
         </div>
         <div>
-          <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">State</label>
+          <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">Longitude</label>
           <input
             type="text"
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink focus:outline-none focus:border-accent"
-            maxLength={2}
+            value={lngInput}
+            onChange={(e) => handleLngChange(e.target.value)}
+            className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink font-mono focus:outline-none focus:border-accent"
           />
         </div>
       </div>
 
-      {/* Access fee */}
+      {/* State */}
       <div>
-        <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">Access Fee ($)</label>
+        <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">State</label>
         <input
-          type="number"
-          value={accessFee}
-          onChange={(e) => setAccessFee(e.target.value)}
-          className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
-          placeholder="0.00"
-          step="0.01"
-          min="0"
+          type="text"
+          value={state}
+          onChange={(e) => setState(e.target.value)}
+          className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink focus:outline-none focus:border-accent"
+          maxLength={2}
         />
       </div>
 
@@ -258,12 +291,9 @@ export default function SubmitLocationPage() {
   if (isDesktop) {
     return (
       <>
-        {/* Backdrop */}
         <div className="fixed inset-0 z-40 bg-black/55" onClick={() => navigate(-1)} />
-        {/* Modal */}
         <div className="fixed inset-0 z-50 grid place-items-center p-6">
           <div className="w-[600px] max-h-[88vh] rounded-card bg-bg border border-chip-border shadow-panel flex flex-col">
-            {/* Header */}
             <div className="h-12 px-4 flex items-center border-b border-tab-border shrink-0">
               <button onClick={() => navigate(-1)} className="text-[14px] text-ink-mute font-mono hover:text-ink active:scale-[.97] transition-transform duration-100">
                 Cancel
@@ -272,17 +302,15 @@ export default function SubmitLocationPage() {
               <button
                 type="submit"
                 form="submit-form"
-                disabled={submitting || !name.trim() || !city.trim()}
+                disabled={submitting || !name.trim()}
                 className="text-[14px] font-semibold text-accent disabled:text-ink-dim active:scale-[.97] transition-transform duration-100"
               >
                 {submitting ? 'Saving...' : 'Save'}
               </button>
             </div>
-            {/* Body */}
             <div className="flex-1 overflow-y-auto overscroll-contain p-7">
               {formBody}
             </div>
-            {/* Footer */}
             <div className="border-t border-tab-border p-4 flex justify-end gap-2 shrink-0">
               <button
                 onClick={() => navigate(-1)}
@@ -293,7 +321,7 @@ export default function SubmitLocationPage() {
               <button
                 type="submit"
                 form="submit-form"
-                disabled={submitting || !name.trim() || !city.trim()}
+                disabled={submitting || !name.trim()}
                 className="h-11 px-6 rounded-card bg-accent text-ink font-semibold disabled:opacity-40 active:scale-[.97] transition-transform duration-100"
               >
                 {submitting ? 'Submitting...' : 'Submit Spot'}
@@ -316,7 +344,7 @@ export default function SubmitLocationPage() {
         <button
           type="submit"
           form="submit-form"
-          disabled={submitting || !name.trim() || !city.trim()}
+          disabled={submitting || !name.trim()}
           className="text-[14px] font-semibold text-accent disabled:text-ink-dim active:scale-[.97] transition-transform duration-100"
         >
           {submitting ? 'Saving...' : 'Save'}
@@ -327,7 +355,7 @@ export default function SubmitLocationPage() {
         <button
           type="submit"
           form="submit-form"
-          disabled={submitting || !name.trim() || !city.trim()}
+          disabled={submitting || !name.trim()}
           className="w-full bg-ink text-bg font-semibold py-3 rounded-card mt-5 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[.97] transition-transform duration-100"
         >
           {submitting ? 'Submitting...' : 'Submit Spot'}
