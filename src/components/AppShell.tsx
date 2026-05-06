@@ -2,6 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { useNotifications } from '../hooks/useNotifications';
+import { useAuth } from '../hooks/useAuth';
 import DesktopSidebar from './DesktopSidebar';
 import { useState } from 'react';
 
@@ -13,7 +14,10 @@ export default function AppShell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { unreadCount } = useNotifications();
+  const { user } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
+
+  const avatarUrl = user?.user_metadata?.avatar_url;
 
   const hideTabBar = FULL_SCREEN_PATHS.some((p) => pathname.startsWith(p));
 
@@ -75,7 +79,11 @@ export default function AppShell() {
                     </svg>
                   )}
                   {tab.icon === 'profile' && (
-                    <div className={`w-6 h-6 rounded-full border-2 ${active ? 'border-ink' : 'border-ink-dim'}`} />
+                    avatarUrl ? (
+                      <img src={avatarUrl} alt="" className={`w-6 h-6 rounded-full object-cover ${active ? 'ring-2 ring-ink' : 'opacity-50'}`} />
+                    ) : (
+                      <div className={`w-6 h-6 rounded-full border-2 ${active ? 'border-ink' : 'border-ink-dim'}`} />
+                    )
                   )}
                   {tab.label && <span>{tab.label}</span>}
                 </button>

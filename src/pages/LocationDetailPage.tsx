@@ -89,11 +89,21 @@ export default function LocationDetailPage() {
   const carousel = (
     <div className={`relative bg-surface ${isDesktop ? 'h-[420px]' : 'aspect-[4/3]'}`}>
       {photoUrl ? (
-        <img
+        <motion.img
           src={photoUrl}
           alt={location.name}
           className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
           onClick={() => setLightboxOpen(true)}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.2}
+          onDragEnd={(_, info) => {
+            if (info.offset.x < -60 && photoIndex < allPhotos.length - 1) {
+              setPhotoIndex((i) => i + 1);
+            } else if (info.offset.x > 60 && photoIndex > 0) {
+              setPhotoIndex((i) => i - 1);
+            }
+          }}
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-ink-mute">No photo</div>
@@ -426,17 +436,17 @@ export default function LocationDetailPage() {
       dragElastic={0.2}
       onDragEnd={(_, info) => {
         if (info.offset.x > 80 || info.velocity.x > 500) {
-          navigate(-1);
+          navigate('/');
         }
       }}
     >
       {lightbox}
       {/* Sticky header */}
       <div className="sticky top-0 z-10 h-12 px-3 flex items-center gap-2 bg-bg/85 backdrop-blur-xl border-b border-tab-border">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 grid place-items-center rounded-full hover:bg-surface text-ink-mute active:scale-[.97] transition-transform duration-100">
+        <button onClick={() => navigate('/')} className="w-10 h-10 -ml-2 grid place-items-center rounded-full hover:bg-surface text-ink-mute active:scale-[.97] transition-transform duration-100">
           ←
         </button>
-        <span className="text-[13px] font-mono text-ink-mute">Back</span>
+        <span className="text-[13px] font-mono text-ink-mute">Feed</span>
       </div>
       {/* Body */}
       <div className="flex-1 overflow-y-auto overscroll-contain">
