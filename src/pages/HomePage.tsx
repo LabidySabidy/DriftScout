@@ -15,48 +15,72 @@ export default function HomePage() {
   const { likedIds, toggleLike } = useLikes();
   const [refreshing, setRefreshing] = useState(false);
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [searchCity, setSearchCity] = useState('');
+  const [showMap, setShowMap] = useState(true);
 
-  const filteredLocations = filterTag
+  let filteredLocations = filterTag
     ? locations.filter((loc) => loc.tags?.includes(filterTag))
     : locations;
+
+  if (searchCity.trim()) {
+    const q = searchCity.trim().toLowerCase();
+    filteredLocations = filteredLocations.filter(
+      (loc) => loc.city.toLowerCase().includes(q) || loc.name.toLowerCase().includes(q)
+    );
+  }
 
   const handleRefresh = async () => {
     setRefreshing(true);
     refresh();
-    // Keep spinner visible for at least 600ms for UX
     setTimeout(() => setRefreshing(false), 600);
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-zinc-900/80 backdrop-blur sticky top-0 z-10">
-        <h1 className="text-xl font-bold">DriftScout</h1>
-        <div className="flex items-center gap-3">
-          {user?.user_metadata?.avatar_url && (
-            <img
-              src={user.user_metadata.avatar_url}
-              alt="avatar"
-              className="w-8 h-8 rounded-full cursor-pointer"
-              onClick={() => navigate('/profile')}
-            />
-          )}
-          <button
-            onClick={() => navigate('/submit')}
-            className="text-sm bg-white text-black px-3 py-1.5 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
-          >
-            + Add Spot
-          </button>
+      <header className="px-4 py-3 bg-zinc-900/80 backdrop-blur sticky top-0 z-10 space-y-2">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold">DriftScout</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowMap(!showMap)}
+              className="text-xs text-zinc-400 hover:text-white"
+            >
+              {showMap ? 'Hide Map' : 'Show Map'}
+            </button>
+            {user?.user_metadata?.avatar_url && (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt="avatar"
+                className="w-8 h-8 rounded-full cursor-pointer"
+                onClick={() => navigate('/profile')}
+              />
+            )}
+            <button
+              onClick={() => navigate('/submit')}
+              className="text-sm bg-white text-black px-3 py-1.5 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
+            >
+              + Add
+            </button>
+          </div>
         </div>
+        {/* Search */}
+        <input
+          type="text"
+          value={searchCity}
+          onChange={(e) => setSearchCity(e.target.value)}
+          placeholder="Search by city or spot name..."
+          className="w-full bg-zinc-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-white/20 placeholder:text-zinc-500"
+        />
       </header>
 
       {/* Map */}
-      {userCoords && <MapView locations={locations} center={userCoords} />}
+      {showMap && userCoords && <MapView locations={filteredLocations} center={userCoords} />}
 
       {/* Radius filter */}
-      <div className="px-4 py-3 flex items-center gap-3 border-b border-zinc-800">
-        <span className="text-sm text-zinc-400 whitespace-nowrap">
-          Within {radius} miles
+      <div className="px-4 py-2 flex items-center gap-3 border-b border-zinc-800">
+        <span className="text-xs text-zinc-500 whitespace-nowrap">
+          {radius} mi
         </span>
         <input
           type="range"
@@ -65,36 +89,30 @@ export default function HomePage() {
           step="5"
           value={radius}
           onChange={(e) => setRadius(Number(e.target.value))}
-          className="w-full accent-white"
+          className="w-full accent-white h-1"
         />
       </div>
 
       {/* Location count + refresh */}
-      <div className="px-4 py-3 flex items-center justify-between">
+      <div className="px-4 py-2 flex items-center justify-between">
         <p className="text-sm text-zinc-500">
           {geoError && (
             <span className="text-yellow-500 mr-2">⚠ {geoError}</span>
           )}
-          <strong className="text-white">{filteredLocations.length}</strong> spots found
+          <strong className="text-white">{filteredLocations.length}</strong> spots
           {filterTag && (
             <>
-              {' '}
-              <span className="text-zinc-400">· #{filterTag}</span>
-              <button
-                onClick={() => setFilterTag(null)}
-                className="ml-1 text-zinc-500 hover:text-white"
-              >
-                ✕
-              </button>
+              {' '}<span className="text-zinc-400">· #{filterTag}</span>
+              <button onClick={() => setFilterTag(null)} className="ml-1 text-zinc-500 hover:text-white">✕</button>
             </>
           )}
         </p>
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          className="text-sm text-zinc-400 hover:text-white disabled:opacity-50"
+          className="text-xs text-zinc-500 hover:text-white disabled:opacity-50"
         >
-          {refreshing ? 'Refreshing...' : '↻ Refresh'}
+          {refreshing ? '...' : '↻'}
         </button>
       </div>
 
@@ -103,17 +121,14 @@ export default function HomePage() {
         {loading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-zinc-900 rounded-xl h-64 animate-pulse"
-              />
+              <div key={i} className="bg-zinc-900 rounded-xl h-64 animate-pulse" />
             ))}
           </div>
         ) : filteredLocations.length === 0 ? (
           <div className="text-center py-12 text-zinc-500">
             <p className="text-lg mb-2">No spots found</p>
             <p className="text-sm">
-              {filterTag ? 'Try removing the tag filter' : 'Try increasing the search radius'}
+              {filterTag || searchCity ? 'Try removing filters' : 'Try increasing the search radius'}
             </p>
           </div>
         ) : (

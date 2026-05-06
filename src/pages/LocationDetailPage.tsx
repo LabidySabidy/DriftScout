@@ -2,6 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useLocation } from '../hooks/useLocation';
 import { useLikes } from '../hooks/useLikes';
+import { useComments } from '../hooks/useComments';
+import { useAuth } from '../hooks/useAuth';
 
 const permissionLabels: Record<string, string> = {
   none: 'Public access — no permission needed',
@@ -14,6 +16,9 @@ export default function LocationDetailPage() {
   const navigate = useNavigate();
   const { location, loading } = useLocation(id!);
   const { likedIds, toggleLike } = useLikes();
+  const { comments, loading: commentsLoading, addComment, deleteComment } = useComments(id!);
+  const { user } = useAuth();
+  const [commentText, setCommentText] = useState('');
   const [photoIndex, setPhotoIndex] = useState(0);
 
   if (loading) {
@@ -161,6 +166,79 @@ export default function LocationDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Comments */}
+        <div className="pt-4 mt-4 border-t border-zinc-800">
+          <h3 className="text-sm font-semibold text-zinc-400 mb-3">
+            Comments ({comments.length})
+          </h3>
+
+          {/* Add comment */}
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Add a note about this spot..."
+              className="flex-1 bg-zinc-900 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-white/20"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && commentText.trim()) {
+                  addComment(commentText);
+                  setCommentText('');
+                }
+              }}
+            />
+            <button
+              onClick={() => { addComment(commentText); setCommentText(''); }}
+              disabled={!commentText.trim()}
+              className="bg-white text-black text-sm px-4 py-2 rounded-lg font-medium disabled:opacity-40"
+            >
+              Post
+            </button>
+          </div>
+
+          {/* Comment list */}
+          {commentsLoading ? (
+            <div className="space-y-2">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="bg-zinc-900 rounded-lg h-10 animate-pulse" />
+              ))}
+            </div>
+          ) : comments.length === 0 ? (
+            <p className="text-sm text-zinc-600 text-center py-4">No comments yet</p>
+          ) : (
+            <div className="space-y-2">
+              {comments.map((c) => (
+                <div key={c.id} className="flex gap-3 items-start">
+                  {c.user?.avatar_url && (
+                    <img
+                      src={c.user.avatar_url}
+                      alt={c.user.username}
+                      className="w-6 h-6 rounded-full mt-0.5 shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xs font-medium">{c.user?.username}</span>
+                      <span className="text-xs text-zinc-600">
+                        {new Date(c.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-zinc-300">{c.body}</p>
+                  </div>
+                  {user?.id === c.user_id && (
+                    <button
+                      onClick={() => deleteComment(c.id)}
+                      className="text-xs text-zinc-600 hover:text-red-400 shrink-0"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

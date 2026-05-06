@@ -5,6 +5,15 @@ export interface Profile {
   created_at: string;
 }
 
+export interface Comment {
+  id: string;
+  location_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+  user: Profile;
+}
+
 export interface Location {
   id: string;
   name: string;
@@ -17,6 +26,8 @@ export interface Location {
   permission_level: 'none' | 'low' | 'high';
   tags: string[];
   submitter_id: string;
+  status: 'active' | 'hot' | 'busted';
+  moderation_status: 'pending' | 'approved' | 'rejected';
   created_at: string;
 }
 

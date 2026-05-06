@@ -20,6 +20,12 @@ const permissionLabels: Record<string, string> = {
   high: 'Highly secure',
 };
 
+const statusStyles: Record<string, string> = {
+  active: 'bg-green-900 text-green-300',
+  hot: 'bg-orange-900 text-orange-300',
+  busted: 'bg-red-900 text-red-300',
+};
+
 export default function LocationCard({ location, onClick, isLiked, onToggleLike, onTagClick }: LocationCardProps) {
   const photoUrl =
     location.photos?.[0]?.storage_path
@@ -67,6 +73,11 @@ export default function LocationCard({ location, onClick, isLiked, onToggleLike,
         </p>
 
         <div className="flex flex-wrap gap-1.5 mb-2">
+          {location.status && location.status !== 'active' && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusStyles[location.status] || ''}`}>
+              {location.status.toUpperCase()}
+            </span>
+          )}
           <span
             className={`text-xs px-2 py-0.5 rounded-full ${permissionColors[location.permission_level] || permissionColors.none}`}
           >
