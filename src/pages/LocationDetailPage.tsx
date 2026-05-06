@@ -436,17 +436,17 @@ export default function LocationDetailPage() {
       dragElastic={0.2}
       onDragEnd={(_, info) => {
         if (info.offset.x > 80 || info.velocity.x > 500) {
-          navigate('/');
+          navigate(-1);
         }
       }}
     >
       {lightbox}
       {/* Sticky header */}
       <div className="sticky top-0 z-10 h-12 px-3 flex items-center gap-2 bg-bg/85 backdrop-blur-xl border-b border-tab-border">
-        <button onClick={() => navigate('/')} className="w-10 h-10 -ml-2 grid place-items-center rounded-full hover:bg-surface text-ink-mute active:scale-[.97] transition-transform duration-100">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 grid place-items-center rounded-full hover:bg-surface text-ink-mute active:scale-[.97] transition-transform duration-100">
           ←
         </button>
-        <span className="text-[13px] font-mono text-ink-mute">Feed</span>
+        <span className="text-[13px] font-mono text-ink-mute">Back</span>
       </div>
       {/* Body */}
       <div className="flex-1 overflow-y-auto overscroll-contain">

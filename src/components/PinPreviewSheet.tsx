@@ -64,8 +64,8 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
         transition={{ type: 'spring', stiffness: 380, damping: 28 }}
         style={{ height }}
         drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.1}
+        dragConstraints={{ top: -600, bottom: 600 }}
+        dragElastic={0.6}
         onDragEnd={handleDragEnd}
       >
         {/* Drag handle */}
