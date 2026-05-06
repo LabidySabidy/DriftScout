@@ -56,7 +56,7 @@ export default function LocationsPage() {
                 </div>
                 <div className="flex-1 overflow-y-auto overscroll-contain">
                   {selectedPhoto && (
-                    <img src={selectedPhoto} alt={selectedLoc.name} className="w-full aspect-[16/9] object-cover bg-surface" />
+                    <img src={selectedPhoto} alt={selectedLoc.name} className="w-full h-[180px] object-cover bg-surface" />
                   )}
                   <div className="p-4 space-y-4">
                     <div>
@@ -160,7 +160,7 @@ export default function LocationsPage() {
         {/* Toggle panel button */}
         <button
           onClick={() => setPanelOpen(!panelOpen)}
-          className="absolute top-4 z-30 w-8 h-8 grid place-items-center rounded-full bg-surface border border-chip-border text-ink-mute hover:text-ink transition-colors shadow-panel"
+          className="absolute top-4 z-40 w-8 h-8 grid place-items-center rounded-full bg-surface border border-chip-border text-ink hover:text-ink transition-colors shadow-panel"
           style={{ left: panelOpen ? '372px' : '12px' }}
         >
           {panelOpen ? '◂' : '▸'}

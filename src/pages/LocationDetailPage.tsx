@@ -8,7 +8,6 @@ import { useReports } from '../hooks/useReports';
 import { useAuth } from '../hooks/useAuth';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { usePhotoContribution } from '../hooks/usePhotoContribution';
-import ImageWithFade from '../components/ImageWithFade';
 import CommunityPhotos from '../components/CommunityPhotos';
 import { supabase } from '../lib/supabase';
 import type { LocationPhoto } from '../types';
@@ -76,7 +75,7 @@ export default function LocationDetailPage() {
   const carousel = (
     <div className={`relative bg-surface ${isDesktop ? 'h-[260px]' : 'aspect-[4/3]'}`}>
       {photoUrl ? (
-        <ImageWithFade src={photoUrl} alt={location.name} className="absolute inset-0" />
+        <img src={photoUrl} alt={location.name} className="absolute inset-0 w-full h-full object-cover" />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-ink-mute">No photo</div>
       )}
