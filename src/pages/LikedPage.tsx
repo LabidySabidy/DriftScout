@@ -28,32 +28,34 @@ export default function LikedPage() {
   }, [user, likedIds]);
 
   return (
-    <div className="px-4 pt-3 pb-20">
-      <h1 className="text-xl font-bold mb-4">Liked Spots</h1>
+    <div className="px-4 pt-3 pb-20 lg:max-w-[1100px] lg:mx-auto lg:px-8 lg:py-8">
+      <h1 className="text-xl font-bold mb-4 lg:font-display lg:text-[26px] lg:tracking-tight lg:mb-6">Liked Spots</h1>
 
       {loading ? (
-        <div className="space-y-6">
+        <div className="space-y-6 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-5">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-input-fill h-[50vh] rounded-lg animate-pulse" />
+            <div key={i} className="bg-surface h-[50vh] rounded-lg animate-pulse" />
           ))}
         </div>
       ) : locations.length === 0 ? (
-        <div className="text-center py-16 text-muted">
+        <div className="text-center py-16 text-ink-mute">
           <p className="text-lg mb-2">No liked spots yet</p>
-          <button onClick={() => navigate('/')} className="text-sm text-accent-link underline">
+          <button onClick={() => navigate('/')} className="text-sm text-accent underline">
             Browse spots
           </button>
         </div>
       ) : (
-        locations.map((loc) => (
-          <LocationCard
-            key={loc.id}
-            location={loc}
-            isLiked
-            onToggleLike={() => toggleLike(loc.id)}
-            onClick={() => navigate(`/location/${loc.id}`)}
-          />
-        ))
+        <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-5">
+          {locations.map((loc) => (
+            <LocationCard
+              key={loc.id}
+              location={loc}
+              isLiked
+              onToggleLike={() => toggleLike(loc.id)}
+              onClick={() => navigate(`/location/${loc.id}`)}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

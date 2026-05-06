@@ -8,10 +8,10 @@ export default function Leaderboard() {
   if (loading) {
     return (
       <div className="px-4 py-4">
-        <h3 className="text-lg font-semibold mb-3">Top Scouts</h3>
+        <h3 className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-3">Top Scouts</h3>
         <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-input-fill rounded-lg h-12 animate-pulse" />
+            <div key={i} className="bg-surface rounded-card h-12 animate-pulse" />
           ))}
         </div>
       </div>
@@ -24,40 +24,40 @@ export default function Leaderboard() {
 
   return (
     <div className="px-4 py-4">
-      <h3 className="text-lg font-semibold mb-3">Top Scouts</h3>
+      <h3 className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-3">Top Scouts</h3>
       <div className="space-y-1">
         {entries.map((entry, i) => (
           <div
             key={entry.submitter.id}
-            className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-input-fill/50"
+            className="flex items-center gap-3 py-2 px-3 rounded-card hover:bg-surface transition-colors"
           >
-            <span className="text-sm font-mono text-muted w-5">
+            <span className="text-sm font-mono text-ink-mute w-5 shrink-0">
               {i < 3 ? crowns[i] : i + 1}
             </span>
             {entry.submitter.avatar_url && (
               <img
                 src={entry.submitter.avatar_url}
                 alt={entry.submitter.username}
-                className="w-8 h-8 rounded-full"
+                className="w-8 h-8 rounded-full shrink-0"
               />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">
+              <p className="text-sm font-medium truncate text-ink">
                 {entry.submitter.username}
               </p>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); toggleFollow(entry.submitter.id); }}
-              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+              className={`text-xs px-2 py-0.5 rounded-pill font-medium active:scale-[.97] transition-transform duration-100 ${
                 following.has(entry.submitter.id)
-                  ? 'bg-white text-black'
-                  : 'bg-input-fill text-muted'
+                  ? 'bg-ink text-bg'
+                  : 'bg-surface text-ink-mute border border-chip-border'
               }`}
             >
               {following.has(entry.submitter.id) ? 'Following' : 'Follow'}
             </button>
-            <span className="text-xs text-muted shrink-0">
-              {entry.spot_count} spot{entry.spot_count !== 1 ? 's' : ''}
+            <span className="text-xs text-ink-mute font-mono shrink-0">
+              {entry.spot_count}
             </span>
           </div>
         ))}

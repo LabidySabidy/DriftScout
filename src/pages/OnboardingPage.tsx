@@ -24,23 +24,23 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-app-bg text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-sm text-center">
+    <div className="min-h-dvh bg-bg text-ink flex items-center justify-center p-6">
+      <div className="w-full max-w-sm lg:max-w-[400px] lg:rounded-card lg:border lg:border-chip-border lg:bg-surface lg:p-10 text-center">
         <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Pacifico', cursive" }}>DriftScout</h1>
-        <p className="text-muted mb-6">Pick a username for your profile</p>
+        <p className="text-ink-mute mb-6">Pick a username for your profile</p>
         <input
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Your username"
-          className="w-full bg-input-fill rounded-2xl px-4 py-3 text-white text-center text-lg outline-none focus:ring-2 focus:ring-white/20 mb-3"
+          className="w-full bg-surface rounded-card px-4 py-3 text-ink text-center text-lg outline-none focus:ring-2 focus:ring-accent mb-3"
           maxLength={20}
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
         />
-        <button onClick={handleSave} disabled={!username.trim() || saving} className="w-full bg-white text-black font-semibold py-3 rounded-2xl disabled:opacity-40 mb-3">
+        <button onClick={handleSave} disabled={!username.trim() || saving} className="w-full bg-ink text-bg font-semibold py-3 rounded-card disabled:opacity-40 mb-3 active:scale-[.97] transition-transform duration-100">
           {saving ? 'Saving...' : 'Continue'}
         </button>
-        <button onClick={() => navigate('/', { replace: true })} className="text-sm text-muted hover:text-white">
+        <button onClick={() => navigate('/', { replace: true })} className="text-sm text-ink-mute hover:text-ink">
           Skip for now
         </button>
       </div>

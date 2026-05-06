@@ -3,14 +3,15 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
-import TabLayout from './components/TabLayout';
+import AppShell from './components/AppShell';
+import { ToastProvider } from './components/Toast';
 import LoginPage from './pages/LoginPage';
 import AuthCallback from './pages/AuthCallback';
 import HomePage from './pages/HomePage';
 import LocationsPage from './pages/LocationsPage';
 import LikedPage from './pages/LikedPage';
 import ProfilePage from './pages/ProfilePage';
-import LocationDetailPage from './pages/LocationDetailPage';
+import LocationDetailRoute from './pages/LocationDetailRoute';
 import SubmitLocationPage from './pages/SubmitLocationPage';
 import NotificationsPage from './pages/NotificationsPage';
 import OnboardingPage from './pages/OnboardingPage';
@@ -30,8 +31,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (loading || checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-app-bg text-white">
-        <p className="text-muted">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-bg text-ink">
+        <p className="text-ink-mute">Loading...</p>
       </div>
     );
   }
@@ -44,24 +45,24 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <ToastProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
 
-        {/* Tabbed layout */}
-        <Route element={<ProtectedRoute><TabLayout /></ProtectedRoute>}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/locations" element={<LocationsPage />} />
-          <Route path="/liked" element={<LikedPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+        {/* All authenticated routes under AppShell */}
+        <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+          <Route index element={<HomePage />} />
+          <Route path="locations" element={<LocationsPage />} />
+          <Route path="liked" element={<LikedPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="location/:id" element={<LocationDetailRoute />} />
+          <Route path="submit" element={<SubmitLocationPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
-
-        {/* Full-screen pages (no tab bar) */}
-        <Route path="/location/:id" element={<ProtectedRoute><LocationDetailPage /></ProtectedRoute>} />
-        <Route path="/submit" element={<ProtectedRoute><SubmitLocationPage /></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
       </Routes>
+      </ToastProvider>
     </BrowserRouter>
   );
 }
