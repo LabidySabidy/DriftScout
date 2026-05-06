@@ -86,14 +86,16 @@ function LocationMarker({
   const map = useMap();
 
   const handleClick = useCallback(
-    (e: L.LeafletMouseEvent) => {
+    () => {
       // Fly to pin
       map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });
 
-      // Get screen position from the native DOM event
+      // Position popover at map center (where the pin will be after flyTo)
+      const containerEl = map.getContainer();
+      const rect = containerEl.getBoundingClientRect();
       const screenPos = {
-        x: e.originalEvent.clientX,
-        y: e.originalEvent.clientY,
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
       };
       onClick(loc, screenPos);
     },
