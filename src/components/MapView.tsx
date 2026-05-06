@@ -15,6 +15,8 @@ interface MapViewProps {
   onSelect?: (loc: LocationWithSubmitter, screenPos: { x: number; y: number }) => void;
   onClose?: () => void;
   onViewMore?: (loc: LocationWithSubmitter) => void;
+  /** Suppress the pin preview popover/sheet (parent handles detail display) */
+  suppressPreview?: boolean;
 }
 
 // ── Custom marker icons ──
@@ -97,7 +99,7 @@ function LocationMarker({
   );
 }
 
-export default function MapView({ locations, center, fullHeight, selectedId, onSelect, onClose, onViewMore }: MapViewProps) {
+export default function MapView({ locations, center, fullHeight, selectedId, onSelect, onClose, onViewMore, suppressPreview }: MapViewProps) {
   const isDesktop = useIsDesktop();
   const [internalSelected, setInternalSelected] = useState<LocationWithSubmitter | null>(null);
   const [pinPosition, setPinPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -147,8 +149,8 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
         ))}
       </MapContainer>
 
-      {/* Pin preview — positioned near the pin */}
-      {selected && (
+      {/* Pin preview — positioned near the pin (suppressed when parent handles detail) */}
+      {!suppressPreview && selected && (
         isDesktop ? (
           <PinPreviewPopover
             location={selected}

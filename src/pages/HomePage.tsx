@@ -79,25 +79,9 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* Results summary */}
-      <div className="px-4 py-2 flex items-center justify-center gap-1.5 lg:max-w-[680px] lg:mx-auto">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B8AFF" strokeWidth="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-        </svg>
-        <span className="text-[13px] text-ink-mute">
-          <strong className="text-ink">{filtered.length}</strong> spots · newest first
-          {filterTag && (
-            <>
-              {' '}<span>· #{filterTag}</span>
-              <button onClick={() => setFilterTag(null)} className="ml-1 text-ink-mute hover:text-ink">✕</button>
-            </>
-          )}
-        </span>
-      </div>
-
-      {/* Content: feed + optional leaderboard sidebar */}
-      <div className={`lg:flex lg:gap-8 ${isDesktop ? 'lg:max-w-[1100px] lg:mx-auto lg:px-6 lg:py-8' : ''}`}>
-        <div className="px-4 lg:flex-1 lg:max-w-[680px] lg:mx-auto lg:px-0">
+      {/* Content: feed */}
+      <div className={`lg:max-w-[1100px] lg:mx-auto lg:px-6 lg:py-8`}>
+        <div className="px-4 lg:max-w-[680px] lg:mx-auto lg:px-0">
           {loading ? (
             <div className="space-y-6">
               {[...Array(3)].map((_, i) => (
