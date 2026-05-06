@@ -8,7 +8,7 @@ export async function fetchLocations(
 ): Promise<LocationWithSubmitter[]> {
   const { data, error } = await supabase
     .from('locations')
-    .select('*, submitter:profiles(*), photos:location_photos(*)')
+    .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
     .order('created_at', { ascending: false });
 
   if (error) {
