@@ -6,9 +6,21 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
         navigate('/', { replace: true });
+      } else {
+        // Wait a tick for the session to be picked up from the URL fragment
+        const timer = setTimeout(() => {
+          supabase.auth.getSession().then(({ data: { session: s } }) => {
+            if (s) {
+              navigate('/', { replace: true });
+            } else {
+              navigate('/login', { replace: true });
+            }
+          });
+        }, 500);
+        return () => clearTimeout(timer);
       }
     });
   }, [navigate]);
