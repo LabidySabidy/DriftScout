@@ -96,7 +96,7 @@ export default function HomePage() {
       </div>
 
       {/* Content: feed + optional leaderboard sidebar */}
-      <div className={`lg:flex lg:gap-8 ${isDesktop ? 'lg:max-w-[1100px] lg:mx-auto lg:px-8' : ''}`}>
+      <div className={`lg:flex lg:gap-8 ${isDesktop ? 'lg:max-w-[1100px] lg:mx-auto lg:px-6 lg:py-8' : ''}`}>
         {/* Feed */}
         <div className="px-4 lg:flex-1 lg:max-w-[680px] lg:mx-auto lg:px-0">
           {loading ? (
