@@ -17,132 +17,89 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) return;
-
     Promise.all([
-      // Submitted
       supabase
         .from('locations')
         .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
         .eq('submitter_id', user.id)
         .order('created_at', { ascending: false }),
-      // Liked
       likedIds.size > 0
         ? supabase
             .from('locations')
             .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
             .in('id', Array.from(likedIds))
         : Promise.resolve({ data: [], error: null }),
-    ]).then(([submittedRes, likedRes]) => {
-      if (submittedRes.data) setSubmitted(submittedRes.data as LocationWithSubmitter[]);
-      if (likedRes.data) setLiked(likedRes.data as LocationWithSubmitter[]);
+    ]).then(([s, l]) => {
+      if (s.data) setSubmitted(s.data as LocationWithSubmitter[]);
+      if (l.data) setLiked(l.data as LocationWithSubmitter[]);
       setLoading(false);
     });
   }, [user, likedIds]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-64">
+        <div className="w-7 h-7 border-2 border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-3">
-          {user?.user_metadata?.avatar_url && (
-            <img
-              src={user.user_metadata.avatar_url}
-              alt="avatar"
-              className="w-12 h-12 rounded-full"
-            />
-          )}
-          <div>
-            <h1 className="text-lg font-semibold">
-              {user?.user_metadata?.full_name || user?.user_metadata?.name || 'Scout'}
-            </h1>
-            <p className="text-sm text-zinc-400">
-              {submitted.length} spots shared
-            </p>
-          </div>
+    <div className="px-4 pt-3 pb-20">
+      {/* Profile header */}
+      <div className="flex items-center gap-4 mb-4">
+        {user?.user_metadata?.avatar_url ? (
+          <img src={user.user_metadata.avatar_url} alt="" className="w-14 h-14 rounded-full" />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-input-fill" />
+        )}
+        <div className="flex-1">
+          <h1 className="text-lg font-semibold">
+            {user?.user_metadata?.full_name || user?.user_metadata?.name || 'Scout'}
+          </h1>
+          <p className="text-sm text-muted">{submitted.length} spots shared</p>
         </div>
-        <button
-          onClick={signOut}
-          className="text-sm text-zinc-400 hover:text-white"
-        >
+        <button onClick={signOut} className="text-xs text-muted hover:text-white border border-chip-border rounded-full px-4 py-1.5">
           Sign out
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800">
-        <button
-          onClick={() => setTab('submitted')}
-          className={`flex-1 py-3 text-sm font-medium text-center ${
-            tab === 'submitted'
-              ? 'text-white border-b-2 border-white'
-              : 'text-zinc-500'
-          }`}
-        >
+      <div className="flex border-b border-tab-bar-border mb-4">
+        <button onClick={() => setTab('submitted')} className={`flex-1 py-2.5 text-sm font-medium text-center ${tab === 'submitted' ? 'text-white border-b-2 border-white' : 'text-tab-inactive'}`}>
           Submitted ({submitted.length})
         </button>
-        <button
-          onClick={() => setTab('liked')}
-          className={`flex-1 py-3 text-sm font-medium text-center ${
-            tab === 'liked'
-              ? 'text-white border-b-2 border-white'
-              : 'text-zinc-500'
-          }`}
-        >
+        <button onClick={() => setTab('liked')} className={`flex-1 py-2.5 text-sm font-medium text-center ${tab === 'liked' ? 'text-white border-b-2 border-white' : 'text-tab-inactive'}`}>
           Liked ({liked.length})
         </button>
       </div>
 
-      {/* List */}
-      <div className="px-4 py-4 pb-8">
-        {tab === 'submitted' ? (
-          submitted.length === 0 ? (
-            <div className="text-center py-12 text-zinc-500">
-              <p className="text-lg mb-2">No spots submitted yet</p>
-              <button
-                onClick={() => navigate('/submit')}
-                className="text-sm bg-white text-black px-4 py-2 rounded-lg font-medium"
-              >
-                Submit your first spot
-              </button>
-            </div>
-          ) : (
-            submitted.map((loc) => (
-              <LocationCard
-                key={loc.id}
-                location={loc}
-                onClick={() => navigate(`/location/${loc.id}`)}
-              />
-            ))
-          )
-        ) : liked.length === 0 ? (
-          <div className="text-center py-12 text-zinc-500">
-            <p className="text-lg mb-2">No liked spots yet</p>
-            <button
-              onClick={() => navigate('/')}
-              className="text-sm text-zinc-400 underline"
-            >
-              Browse spots
+      {/* Content */}
+      {tab === 'submitted' ? (
+        submitted.length === 0 ? (
+          <div className="text-center py-12 text-muted">
+            <p className="text-lg mb-2">No spots submitted yet</p>
+            <button onClick={() => navigate('/submit')} className="text-sm bg-white text-black px-5 py-2.5 rounded-2xl font-semibold">
+              Submit your first spot
             </button>
           </div>
         ) : (
-          liked.map((loc) => (
-            <LocationCard
-              key={loc.id}
-              location={loc}
-              isLiked
-              onClick={() => navigate(`/location/${loc.id}`)}
-            />
+          submitted.map((loc) => (
+            <LocationCard key={loc.id} location={loc} onClick={() => navigate(`/location/${loc.id}`)} />
           ))
-        )}
-      </div>
+        )
+      ) : liked.length === 0 ? (
+        <div className="text-center py-12 text-muted">
+          <p className="text-lg mb-2">No liked spots yet</p>
+          <button onClick={() => navigate('/')} className="text-sm text-accent-link underline">
+            Browse spots
+          </button>
+        </div>
+      ) : (
+        liked.map((loc) => (
+          <LocationCard key={loc.id} location={loc} isLiked onToggleLike={() => navigate(`/location/${loc.id}`)} onClick={() => navigate(`/location/${loc.id}`)} />
+        ))
+      )}
     </div>
   );
 }

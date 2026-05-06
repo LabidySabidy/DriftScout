@@ -51,7 +51,7 @@ export default function MapView({ locations, center }: MapViewProps) {
                 <strong>{loc.name}</strong>
                 <p>{loc.city}, {loc.state}</p>
                 {loc.distance && (
-                  <p className="text-zinc-500">{loc.distance} miles away</p>
+                  <p className="text-muted">{loc.distance} miles away</p>
                 )}
               </div>
             </Popup>

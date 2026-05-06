@@ -29,7 +29,7 @@ export default function LocationDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-app-bg flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -37,9 +37,9 @@ export default function LocationDetailPage() {
 
   if (!location) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-app-bg text-white flex flex-col items-center justify-center p-6">
         <p className="text-lg mb-4">Location not found</p>
-        <button onClick={() => navigate('/')} className="text-zinc-400 underline">
+        <button onClick={() => navigate('/')} className="text-muted underline">
           Go back
         </button>
       </div>
@@ -53,10 +53,10 @@ export default function LocationDetailPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-app-bg text-white">
       {/* Photo carousel */}
       {photoUrl ? (
-        <div className="relative h-72 bg-zinc-900">
+        <div className="relative h-72 bg-input-fill">
           <img
             src={photoUrl}
             alt={location.name}
@@ -88,20 +88,20 @@ export default function LocationDetailPage() {
           )}
         </div>
       ) : (
-        <div className="h-48 bg-zinc-900 flex items-center justify-center text-zinc-600">
+        <div className="h-48 bg-input-fill flex items-center justify-center text-muted-light">
           No photo
         </div>
       )}
 
       {/* Back + actions */}
       <div className="flex items-center justify-between px-4 py-3">
-        <button onClick={() => navigate(-1)} className="text-zinc-400 text-sm">
+        <button onClick={() => navigate(-1)} className="text-muted text-sm">
           ← Back
         </button>
         <div className="flex items-center gap-3">
           <button
             onClick={() => toggleLike(location.id)}
-            className={`text-2xl ${isLiked ? 'text-red-500' : 'text-zinc-500'}`}
+            className={`text-2xl ${isLiked ? 'text-red-500' : 'text-muted'}`}
           >
             {isLiked ? '❤️' : '🤍'}
           </button>
@@ -119,7 +119,7 @@ export default function LocationDetailPage() {
       {/* Details */}
       <div className="px-4 pb-8">
         <h1 className="text-2xl font-bold mb-1">{location.name}</h1>
-        <p className="text-zinc-400 mb-4">
+        <p className="text-muted mb-4">
           {location.city}, {location.state}
           {location.distance !== undefined && <> · {location.distance} miles away</>}
         </p>
@@ -137,13 +137,13 @@ export default function LocationDetailPage() {
           </span>
 
           {location.access_fee != null && location.access_fee > 0 && (
-            <span className="text-xs bg-zinc-800 text-zinc-300 px-3 py-1 rounded-full">
+            <span className="text-xs bg-input-fill text-white/80 px-3 py-1 rounded-full">
               ${location.access_fee.toFixed(2)} access fee
             </span>
           )}
 
           {location.tags?.map((tag) => (
-            <span key={tag} className="text-xs bg-zinc-800 text-zinc-400 px-3 py-1 rounded-full">
+            <span key={tag} className="text-xs bg-input-fill text-muted px-3 py-1 rounded-full">
               #{tag}
             </span>
           ))}
@@ -151,12 +151,12 @@ export default function LocationDetailPage() {
 
         {/* Description */}
         {location.description && (
-          <p className="text-zinc-300 mb-4 leading-relaxed">{location.description}</p>
+          <p className="text-white/80 mb-4 leading-relaxed">{location.description}</p>
         )}
 
         {/* Submitter */}
         {location.submitter && (
-          <div className="flex items-center gap-3 pt-4 border-t border-zinc-800">
+          <div className="flex items-center gap-3 pt-4 border-t border-chip-border">
             {location.submitter.avatar_url && (
               <img
                 src={location.submitter.avatar_url}
@@ -166,7 +166,7 @@ export default function LocationDetailPage() {
             )}
             <div>
               <p className="text-sm font-medium">{location.submitter.username}</p>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-muted">
                 Discovered {new Date(location.created_at).toLocaleDateString()}
               </p>
             </div>
@@ -178,7 +178,7 @@ export default function LocationDetailPage() {
           {/* Report */}
           <button
             onClick={() => setShowReport(!showReport)}
-            className="text-xs text-zinc-600 hover:text-zinc-400"
+            className="text-xs text-muted-light hover:text-muted"
           >
             ⚑ Report
           </button>
@@ -198,12 +198,12 @@ export default function LocationDetailPage() {
 
         {/* Report form */}
         {showReport && (
-          <div className="mt-3 p-3 bg-zinc-900 rounded-lg space-y-2">
-            <p className="text-sm text-zinc-400">Report this spot</p>
+          <div className="mt-3 p-3 bg-input-fill rounded-lg space-y-2">
+            <p className="text-sm text-muted">Report this spot</p>
             <select
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
-              className="w-full bg-zinc-800 rounded px-3 py-2 text-sm text-white"
+              className="w-full bg-input-fill rounded px-3 py-2 text-sm text-white"
             >
               <option value="">Select reason</option>
               <option value="inaccurate">Inaccurate info</option>
@@ -217,7 +217,7 @@ export default function LocationDetailPage() {
               value={reportDetail}
               onChange={(e) => setReportDetail(e.target.value)}
               placeholder="Details (optional)"
-              className="w-full bg-zinc-800 rounded px-3 py-2 text-sm text-white outline-none"
+              className="w-full bg-input-fill rounded px-3 py-2 text-sm text-white outline-none"
             />
             <button
               onClick={() => { submitReport(reportReason, reportDetail); setShowReport(false); }}
@@ -230,8 +230,8 @@ export default function LocationDetailPage() {
         )}
 
         {/* Comments */}
-        <div className="pt-4 mt-4 border-t border-zinc-800">
-          <h3 className="text-sm font-semibold text-zinc-400 mb-3">
+        <div className="pt-4 mt-4 border-t border-chip-border">
+          <h3 className="text-sm font-semibold text-muted mb-3">
             Comments ({comments.length})
           </h3>
 
@@ -242,7 +242,7 @@ export default function LocationDetailPage() {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Add a note about this spot..."
-              className="flex-1 bg-zinc-900 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-white/20"
+              className="flex-1 bg-input-fill rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-white/20"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && commentText.trim()) {
                   addComment(commentText);
@@ -263,11 +263,11 @@ export default function LocationDetailPage() {
           {commentsLoading ? (
             <div className="space-y-2">
               {[...Array(2)].map((_, i) => (
-                <div key={i} className="bg-zinc-900 rounded-lg h-10 animate-pulse" />
+                <div key={i} className="bg-input-fill rounded-lg h-10 animate-pulse" />
               ))}
             </div>
           ) : comments.length === 0 ? (
-            <p className="text-sm text-zinc-600 text-center py-4">No comments yet</p>
+            <p className="text-sm text-muted-light text-center py-4">No comments yet</p>
           ) : (
             <div className="space-y-2">
               {comments.map((c) => (
@@ -282,16 +282,16 @@ export default function LocationDetailPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="text-xs font-medium">{c.user?.username}</span>
-                      <span className="text-xs text-zinc-600">
+                      <span className="text-xs text-muted-light">
                         {new Date(c.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm text-zinc-300">{c.body}</p>
+                    <p className="text-sm text-white/80">{c.body}</p>
                   </div>
                   {user?.id === c.user_id && (
                     <button
                       onClick={() => deleteComment(c.id)}
-                      className="text-xs text-zinc-600 hover:text-red-400 shrink-0"
+                      className="text-xs text-muted-light hover:text-red-400 shrink-0"
                     >
                       ✕
                     </button>
