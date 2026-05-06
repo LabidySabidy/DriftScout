@@ -30,6 +30,9 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
   const navigate = useNavigate();
   const [detent, setDetent] = useState<'peek' | 'mid' | 'full'>('peek');
 
+  // Cap upward drag so sheet doesn't go above the map area
+  const maxUpDrag = typeof window !== 'undefined' ? -(window.innerHeight - 160) : -600;
+
   const photoUrl = location.photos?.[0]?.storage_path
     ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${location.photos[0].storage_path}`
     : null;
@@ -58,13 +61,12 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
     <AnimatePresence>
       <motion.div
         className="fixed inset-x-0 bottom-0 z-[9999] bg-surface/95 backdrop-blur-xl border-t border-chip-border rounded-t-sheet shadow-sheet overflow-hidden"
-        initial={{ y: height }}
-        animate={{ y: 0 }}
-        exit={{ y: height }}
+        initial={{ y: DETENTS.peek, height: DETENTS.peek }}
+        animate={{ y: 0, height }}
+        exit={{ y: height, height: DETENTS.peek }}
         transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-        style={{ height }}
         drag="y"
-        dragConstraints={{ top: -600, bottom: 600 }}
+        dragConstraints={{ top: maxUpDrag, bottom: 600 }}
         dragElastic={0.6}
         onDragEnd={handleDragEnd}
       >
@@ -74,7 +76,7 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto overscroll-contain h-full pb-safe px-4">
+        <div className="pb-safe px-4">
           {/* Photo + header */}
           {photoUrl && (
             <img
