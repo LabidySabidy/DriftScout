@@ -24,7 +24,7 @@ export default function AppShell() {
     { path: '/', label: 'Home', icon: 'home' },
     { path: '/locations', label: 'Locations', icon: 'map' },
     { path: '/liked', label: 'Liked', icon: 'heart' },
-    { path: '/profile', label: '', icon: 'profile' },
+    { path: '/profile', label: 'Profile', icon: 'profile' },
   ];
 
   const isActive = (path: string) => {

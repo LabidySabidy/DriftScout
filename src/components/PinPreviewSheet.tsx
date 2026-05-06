@@ -23,7 +23,6 @@ const permissionColors: Record<string, string> = {
 const PEEK = 220;
 const MID = typeof window !== 'undefined' ? window.innerHeight * 0.5 : 400;
 const FULL = typeof window !== 'undefined' ? window.innerHeight * 0.78 : 600;
-const MAX_UP_DRAG = typeof window !== 'undefined' ? -(window.innerHeight - 160) : -600;
 
 const DETENTS = [PEEK, MID, FULL];
 
@@ -73,8 +72,8 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
         exit={{ height: PEEK, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 380, damping: 28 }}
         drag="y"
-        dragConstraints={{ top: MAX_UP_DRAG, bottom: 600 }}
-        dragElastic={0}
+        dragConstraints={{ top: -(FULL - PEEK), bottom: 0 }}
+        dragElastic={0.15}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
       >
