@@ -2,6 +2,9 @@ import type { LocationWithSubmitter } from '../types';
 
 interface LocationCardProps {
   location: LocationWithSubmitter;
+  onClick?: () => void;
+  isLiked?: boolean;
+  onToggleLike?: () => void;
 }
 
 const permissionColors: Record<string, string> = {
@@ -16,14 +19,17 @@ const permissionLabels: Record<string, string> = {
   high: 'Highly secure',
 };
 
-export default function LocationCard({ location }: LocationCardProps) {
+export default function LocationCard({ location, onClick, isLiked, onToggleLike }: LocationCardProps) {
   const photoUrl =
     location.photos?.[0]?.storage_path
       ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${location.photos[0].storage_path}`
       : null;
 
   return (
-    <div className="bg-zinc-900 rounded-xl overflow-hidden mb-4">
+    <div
+      className="bg-zinc-900 rounded-xl overflow-hidden mb-4 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+      onClick={onClick}
+    >
       {photoUrl && (
         <div className="h-48 overflow-hidden">
           <img
@@ -40,6 +46,14 @@ export default function LocationCard({ location }: LocationCardProps) {
           <h3 className="text-white font-semibold text-lg leading-tight">
             {location.name}
           </h3>
+          {onToggleLike && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleLike(); }}
+              className={`text-lg shrink-0 ml-2 ${isLiked ? 'text-red-500' : 'text-zinc-600'}`}
+            >
+              {isLiked ? '❤️' : '🤍'}
+            </button>
+          )}
         </div>
 
         <p className="text-zinc-400 text-sm mb-2">

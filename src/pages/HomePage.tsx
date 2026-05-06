@@ -1,12 +1,16 @@
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocations } from '../hooks/useLocations';
+import { useLikes } from '../hooks/useLikes';
 import MapView from '../components/MapView';
 import LocationCard from '../components/LocationCard';
 
 export default function HomePage() {
-  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { locations, userCoords, radius, setRadius, loading, geoError } =
     useLocations();
+  const { likedIds, toggleLike } = useLikes();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -22,10 +26,10 @@ export default function HomePage() {
             />
           )}
           <button
-            onClick={signOut}
-            className="text-sm text-zinc-400 hover:text-white"
+            onClick={() => navigate('/submit')}
+            className="text-sm bg-white text-black px-3 py-1.5 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
           >
-            Sign out
+            + Add Spot
           </button>
         </div>
       </header>
@@ -76,7 +80,15 @@ export default function HomePage() {
             <p className="text-sm">Try increasing the search radius</p>
           </div>
         ) : (
-          locations.map((loc) => <LocationCard key={loc.id} location={loc} />)
+          locations.map((loc) => (
+            <LocationCard
+              key={loc.id}
+              location={loc}
+              isLiked={likedIds.has(loc.id)}
+              onToggleLike={() => toggleLike(loc.id)}
+              onClick={() => navigate(`/location/${loc.id}`)}
+            />
+          ))
         )}
       </div>
     </div>
