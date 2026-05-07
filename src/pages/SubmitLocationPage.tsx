@@ -56,6 +56,8 @@ export default function SubmitLocationPage() {
   const [lngInput, setLngInput] = useState('-96.79700');
   const [permissionLevel, setPermissionLevel] = useState('none');
   const [tags, setTags] = useState<string[]>([]);
+  const [customTags, setCustomTags] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
@@ -85,11 +87,22 @@ export default function SubmitLocationPage() {
           setLatInput(data.latitude.toFixed(5));
           setLngInput(data.longitude.toFixed(5));
           setPermissionLevel(data.permission_level || 'none');
-          setTags(data.tags || []);
+          const allTags: string[] = data.tags || [];
+          setTags(allTags.filter((t) => AVAILABLE_TAGS.includes(t)));
+          setCustomTags(allTags.filter((t) => !AVAILABLE_TAGS.includes(t)));
         }
         setLoadingEdit(false);
       });
   }, [editId]);
+
+  // Escape key to dismiss
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') navigate(-1);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [navigate]);
 
   const toggleTag = (tag: string) => {
     setTags((prev) =>
@@ -212,7 +225,7 @@ export default function SubmitLocationPage() {
             city: address.trim() || 'Unknown',
             state: state.trim(),
             permission_level: permissionLevel,
-            tags,
+            tags: [...new Set([...tags, ...customTags])],
           })
           .eq('id', editId);
 
@@ -231,7 +244,7 @@ export default function SubmitLocationPage() {
           state: state.trim(),
           access_fee: null,
           permission_level: permissionLevel,
-          tags,
+          tags: [...new Set([...tags, ...customTags])],
           submitter_id: user.id,
         })
         .select('id')
@@ -320,7 +333,7 @@ export default function SubmitLocationPage() {
           <MapContainer
             center={[lat, lng]}
             zoom={10}
-            scrollWheelZoom={false}
+            scrollWheelZoom={true}
             className="h-full w-full"
           >
             <TileLayer
@@ -432,6 +445,38 @@ export default function SubmitLocationPage() {
               #{tag}
             </button>
           ))}
+          {customTags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 rounded-pill border border-accent bg-accent/15 text-accent px-3 py-1.5 text-[12px]"
+            >
+              #{tag}
+              <button
+                type="button"
+                onClick={() => setCustomTags((prev) => prev.filter((t) => t !== tag))}
+                className="ml-0.5 text-[10px] hover:text-ink active:scale-[.97] transition-transform duration-100"
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+          <input
+            type="text"
+            value={customTagInput}
+            onChange={(e) => setCustomTagInput(e.target.value.replace(/\s/g, ''))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = customTagInput.trim().toLowerCase();
+                if (val && !tags.includes(val) && !customTags.includes(val)) {
+                  setCustomTags((prev) => [...prev, val]);
+                }
+                setCustomTagInput('');
+              }
+            }}
+            placeholder="+ custom"
+            className="h-[30px] w-[100px] rounded-pill border border-dashed border-chip-border bg-transparent px-3 text-[12px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
+          />
         </div>
       </div>
 
@@ -456,8 +501,8 @@ export default function SubmitLocationPage() {
     return (
       <>
         <div className="fixed inset-0 z-40 bg-black/55" onClick={() => navigate(-1)} />
-        <div className="fixed inset-0 z-50 grid place-items-center p-6">
-          <div className="w-[600px] max-h-[88vh] rounded-card bg-bg border border-chip-border shadow-panel flex flex-col">
+        <div className="fixed inset-0 z-50 grid place-items-center p-6 pointer-events-none" onClick={() => navigate(-1)}>
+          <div className="w-[600px] max-h-[88vh] rounded-card bg-bg border border-chip-border shadow-panel flex flex-col pointer-events-auto" onClick={(e) => e.stopPropagation()}>
             <div className="h-12 px-4 flex items-center border-b border-tab-border shrink-0">
               <button onClick={() => navigate(-1)} className="text-[14px] text-ink-mute font-mono hover:text-ink active:scale-[.97] transition-transform duration-100">
                 Cancel
