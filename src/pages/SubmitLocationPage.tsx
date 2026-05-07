@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { supabase } from '../lib/supabase';
@@ -41,6 +41,8 @@ function RecenterMap({ center }: { center: [number, number] }) {
 export default function SubmitLocationPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
   const isDesktop = useIsDesktop();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +61,35 @@ export default function SubmitLocationPage() {
   const [geocoding, setGeocoding] = useState(false);
   const [geoError, setGeoError] = useState('');
   const [error, setError] = useState('');
+  const [loadingEdit, setLoadingEdit] = useState(!!editId);
+  const pageTitle = editId ? 'Edit Spot' : 'Submit Spot';
+  const saveLabel = editId ? 'Update' : 'Save';
+  const submittingLabel = editId ? 'Updating...' : 'Submitting...';
+
+  // Fetch existing location when editing
+  useEffect(() => {
+    if (!editId) return;
+    supabase
+      .from('locations')
+      .select('*')
+      .eq('id', editId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setName(data.name || '');
+          setDescription(data.description || '');
+          setAddress(data.city || '');
+          setState(data.state || 'TX');
+          setLat(data.latitude);
+          setLng(data.longitude);
+          setLatInput(data.latitude.toFixed(5));
+          setLngInput(data.longitude.toFixed(5));
+          setPermissionLevel(data.permission_level || 'none');
+          setTags(data.tags || []);
+        }
+        setLoadingEdit(false);
+      });
+  }, [editId]);
 
   const toggleTag = (tag: string) => {
     setTags((prev) =>
@@ -141,7 +172,27 @@ export default function SubmitLocationPage() {
     setError('');
 
     try {
-      const { data: location, error: locError } = await supabase
+      if (editId) {
+        // Update existing location
+        const { error: updateError } = await supabase
+          .from('locations')
+          .update({
+            name: name.trim(),
+            description: description.trim(),
+            latitude: lat,
+            longitude: lng,
+            city: address.trim() || 'Unknown',
+            state: state.trim(),
+            permission_level: permissionLevel,
+            tags,
+          })
+          .eq('id', editId);
+
+        if (updateError) throw updateError;
+        navigate(`/location/${editId}`, { replace: true });
+      } else {
+        // Create new location
+        const { data: location, error: locError } = await supabase
         .from('locations')
         .insert({
           name: name.trim(),
@@ -158,23 +209,24 @@ export default function SubmitLocationPage() {
         .select('id')
         .single();
 
-      if (locError || !location) throw locError || new Error('Failed to create location');
+        if (locError || !location) throw locError || new Error('Failed to create location');
 
-      for (const file of files) {
-        const path = `${location.id}/${Date.now()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from('location-photos')
-          .upload(path, file);
+        for (const file of files) {
+          const path = `${location.id}/${Date.now()}-${file.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from('location-photos')
+            .upload(path, file);
 
-        if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-        await supabase.from('location_photos').insert({
-          location_id: location.id,
-          storage_path: path,
-        });
+          await supabase.from('location_photos').insert({
+            location_id: location.id,
+            storage_path: path,
+          });
+        }
+
+        navigate(`/location/${location.id}`, { replace: true });
       }
-
-      navigate(`/location/${location.id}`, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -183,6 +235,12 @@ export default function SubmitLocationPage() {
   };
 
   const formBody = (
+    <>
+    {loadingEdit ? (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-7 h-7 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+      </div>
+    ) : (
     <form id="submit-form" onSubmit={handleSubmit} className="space-y-5">
       {error && (
         <div className="bg-danger/20 text-danger text-sm p-3 rounded-card">{error}</div>
@@ -361,6 +419,8 @@ export default function SubmitLocationPage() {
         />
       </div>
     </form>
+    )}
+    </>
   );
 
   // ── Desktop: centered modal ──
@@ -374,14 +434,14 @@ export default function SubmitLocationPage() {
               <button onClick={() => navigate(-1)} className="text-[14px] text-ink-mute font-mono hover:text-ink active:scale-[.97] transition-transform duration-100">
                 Cancel
               </button>
-              <h1 className="mx-auto font-semibold text-[15px] text-ink">Submit Spot</h1>
+              <h1 className="mx-auto font-semibold text-[15px] text-ink">{pageTitle}</h1>
               <button
                 type="submit"
                 form="submit-form"
                 disabled={submitting || !name.trim()}
                 className="text-[14px] font-semibold text-accent disabled:text-ink-dim active:scale-[.97] transition-transform duration-100"
               >
-                {submitting ? 'Saving...' : 'Save'}
+                {submitting ? 'Saving...' : saveLabel}
               </button>
             </div>
             <div className="flex-1 overflow-y-auto overscroll-contain p-7">
@@ -400,7 +460,7 @@ export default function SubmitLocationPage() {
                 disabled={submitting || !name.trim()}
                 className="h-11 px-6 rounded-card bg-accent text-ink font-semibold disabled:opacity-40 active:scale-[.97] transition-transform duration-100"
               >
-                {submitting ? 'Submitting...' : 'Submit Spot'}
+                {submitting ? submittingLabel : saveLabel}
               </button>
             </div>
           </div>
@@ -416,14 +476,14 @@ export default function SubmitLocationPage() {
         <button onClick={() => navigate(-1)} className="text-[14px] text-ink-mute font-mono active:scale-[.97] transition-transform duration-100">
           Cancel
         </button>
-        <h1 className="font-semibold text-[15px]">Submit Spot</h1>
+        <h1 className="font-semibold text-[15px]">{pageTitle}</h1>
         <button
           type="submit"
           form="submit-form"
           disabled={submitting || !name.trim()}
           className="text-[14px] font-semibold text-accent disabled:text-ink-dim active:scale-[.97] transition-transform duration-100"
         >
-          {submitting ? 'Saving...' : 'Save'}
+          {submitting ? 'Saving...' : saveLabel}
         </button>
       </div>
       <div className="flex-1 overflow-y-auto overscroll-contain p-4 pb-8">
@@ -434,7 +494,7 @@ export default function SubmitLocationPage() {
           disabled={submitting || !name.trim()}
           className="w-full bg-ink text-bg font-semibold py-3 rounded-card mt-5 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[.97] transition-transform duration-100"
         >
-          {submitting ? 'Submitting...' : 'Submit Spot'}
+          {submitting ? submittingLabel : saveLabel}
         </button>
       </div>
     </div>

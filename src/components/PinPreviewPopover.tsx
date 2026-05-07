@@ -33,7 +33,7 @@ export default function PinPreviewPopover({ location, position, onClose, onViewM
       style={{
         left: position.x,
         top: position.y,
-        transform: 'translate(-50%, calc(-100% - 12px))',
+        transform: 'translate(-50%, calc(-100% - 20px))',
       }}
     >
         {/* Arrow */}

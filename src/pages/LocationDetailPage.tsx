@@ -234,15 +234,23 @@ export default function LocationDetailPage() {
           ⚑ Report
         </button>
         {user?.id === location.submitter_id && location.moderation_status !== 'rejected' && (
-          <button
-            onClick={async () => {
-              await supabase.from('locations').update({ moderation_status: 'rejected' }).eq('id', location.id);
-              navigate('/', { replace: true });
-            }}
-            className="text-xs text-danger hover:text-perm-sec font-mono"
-          >
-            ✕ Remove
-          </button>
+          <>
+            <button
+              onClick={() => navigate(`/submit?edit=${location.id}`)}
+              className="text-xs text-accent hover:text-accent-hi font-mono"
+            >
+              ✎ Edit
+            </button>
+            <button
+              onClick={async () => {
+                await supabase.from('locations').update({ moderation_status: 'rejected' }).eq('id', location.id);
+                navigate('/', { replace: true });
+              }}
+              className="text-xs text-danger hover:text-perm-sec font-mono"
+            >
+              ✕ Remove
+            </button>
+          </>
         )}
       </div>
 
