@@ -98,9 +98,9 @@ export default function LocationDetailPage() {
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.2}
           onDragEnd={(_, info) => {
-            if (info.offset.x < -60 && photoIndex < allPhotos.length - 1) {
+            if (info.offset.x < -30 && photoIndex < allPhotos.length - 1) {
               setPhotoIndex((i) => i + 1);
-            } else if (info.offset.x > 60 && photoIndex > 0) {
+            } else if (info.offset.x > 30 && photoIndex > 0) {
               setPhotoIndex((i) => i - 1);
             }
           }}
@@ -389,11 +389,21 @@ export default function LocationDetailPage() {
         </button>
       )}
       {/* Image */}
-      <img
+      <motion.img
         src={photoUrl}
         alt={location.name}
         className="max-w-full max-h-full object-contain"
         onClick={(e) => e.stopPropagation()}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(_, info) => {
+          if (info.offset.x < -40 && photoIndex < allPhotos.length - 1) {
+            setPhotoIndex((i) => i + 1);
+          } else if (info.offset.x > 40 && photoIndex > 0) {
+            setPhotoIndex((i) => i - 1);
+          }
+        }}
       />
     </div>
   ) : null;

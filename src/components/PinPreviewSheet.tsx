@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { LocationWithSubmitter } from '../types';
@@ -23,29 +23,40 @@ const permissionColors: Record<string, string> = {
 const PEEK = 220;
 const MID = typeof window !== 'undefined' ? window.innerHeight * 0.5 : 400;
 const FULL = typeof window !== 'undefined' ? window.innerHeight * 0.78 : 600;
-
 const DETENTS = [PEEK, MID, FULL];
 
 export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetProps) {
   const navigate = useNavigate();
   const [height, setHeight] = useState(PEEK);
+  const startY = useRef(0);
+  const startHeight = useRef(PEEK);
+  const dragging = useRef(false);
 
   const photoUrl = location.photos?.[0]?.storage_path
     ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${location.photos[0].storage_path}`
     : null;
 
-  const handleDrag = useCallback((_: unknown, info: { offset: { y: number } }) => {
-    // offset.y is negative when dragging up, positive when dragging down
-    const newHeight = Math.max(PEEK, Math.min(FULL, PEEK - info.offset.y));
+  const handleStart = useCallback((clientY: number) => {
+    dragging.current = true;
+    startY.current = clientY;
+    startHeight.current = height;
+  }, [height]);
+
+  const handleMove = useCallback((clientY: number) => {
+    if (!dragging.current) return;
+    const delta = startY.current - clientY; // positive = moving up
+    const newHeight = Math.max(PEEK, Math.min(FULL, startHeight.current + delta));
     setHeight(newHeight);
   }, []);
 
-  const handleDragEnd = useCallback((_: unknown, info: { offset: { y: number }; velocity: { y: number } }) => {
-    const vy = info.velocity.y;
-    const currentHeight = PEEK - info.offset.y;
+  const handleEnd = useCallback((clientY: number) => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    const delta = startY.current - clientY;
+    const finalHeight = startHeight.current + delta;
 
     // Dismiss on strong downward swipe
-    if (vy > 500 || (currentHeight < PEEK + 40 && info.offset.y > 40)) {
+    if (delta < -80 || (finalHeight < PEEK + 60 && delta < -40)) {
       onClose();
       return;
     }
@@ -54,7 +65,7 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
     let closest = PEEK;
     let minDist = Infinity;
     for (const d of DETENTS) {
-      const dist = Math.abs(currentHeight - d);
+      const dist = Math.abs(finalHeight - d);
       if (dist < minDist) {
         minDist = dist;
         closest = d;
@@ -62,6 +73,34 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
     }
     setHeight(closest);
   }, [onClose]);
+
+  // Touch handlers
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    handleStart(e.touches[0].clientY);
+  }, [handleStart]);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    handleMove(e.touches[0].clientY);
+  }, [handleMove]);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    handleEnd(e.changedTouches[0].clientY);
+  }, [handleEnd]);
+
+  // Mouse handlers (for desktop testing)
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    handleStart(e.clientY);
+
+    const onMouseMove = (ev: MouseEvent) => handleMove(ev.clientY);
+    const onMouseUp = (ev: MouseEvent) => {
+      handleEnd(ev.clientY);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }, [handleStart, handleMove, handleEnd]);
 
   return (
     <AnimatePresence>
@@ -71,15 +110,16 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
         animate={{ height }}
         exit={{ height: PEEK, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-        drag="y"
-        dragConstraints={{ top: -(FULL - PEEK), bottom: 0 }}
-        dragElastic={0.15}
-        onDrag={handleDrag}
-        onDragEnd={handleDragEnd}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing shrink-0">
-          <div className="w-9 h-1 rounded-full bg-ink-dim" />
+        {/* Drag handle — touch + mouse events for manual height tracking */}
+        <div
+          className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing shrink-0 touch-none select-none"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onMouseDown={onMouseDown}
+        >
+          <div className="w-9 h-1 rounded-full bg-ink-dim pointer-events-none" />
         </div>
 
         {/* Content — clipped by parent height, reveals naturally as sheet grows */}
@@ -88,7 +128,8 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
             <img
               src={photoUrl}
               alt={location.name}
-              className="w-full aspect-[16/9] object-cover rounded-card bg-surface mt-1"
+              className="w-full aspect-[16/9] object-cover rounded-card bg-surface mt-1 cursor-pointer"
+              onClick={() => { navigate(`/location/${location.id}`); onClose(); }}
             />
           )}
 

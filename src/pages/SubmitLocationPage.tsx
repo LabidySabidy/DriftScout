@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -30,6 +30,14 @@ function LocationPicker({ onPick }: { onPick: (lat: number, lng: number) => void
   return null;
 }
 
+function RecenterMap({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center, map]);
+  return null;
+}
+
 export default function SubmitLocationPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -48,6 +56,8 @@ export default function SubmitLocationPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geoError, setGeoError] = useState('');
   const [error, setError] = useState('');
 
   const toggleTag = (tag: string) => {
@@ -73,6 +83,54 @@ export default function SubmitLocationPage() {
     setLngInput(val);
     const parsed = parseFloat(val);
     if (!isNaN(parsed)) setLng(parsed);
+  };
+
+  const handleLatPaste = (e: React.ClipboardEvent) => {
+    const text = e.clipboardData.getData('text');
+    // Match Google Maps style: (lat, lng) or lat, lng
+    const m = text.match(/^\s*\(?\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*\)?\s*$/);
+    if (!m) return; // normal paste
+    e.preventDefault();
+    const parsedLat = parseFloat(m[1]);
+    const parsedLng = parseFloat(m[2]);
+    if (isNaN(parsedLat) || isNaN(parsedLng)) return;
+    setLat(parsedLat);
+    setLng(parsedLng);
+    setLatInput(parsedLat.toFixed(5));
+    setLngInput(parsedLng.toFixed(5));
+  };
+
+  const geocodeAddress = async (query: string) => {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'DriftScout/1.0' },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  };
+
+  const handleGeocode = async () => {
+    const query = address.trim();
+    if (!query) return;
+    setGeocoding(true);
+    setGeoError('');
+    try {
+      const result = await geocodeAddress(query);
+      if (result) {
+        setLat(result.lat);
+        setLng(result.lng);
+        setLatInput(result.lat.toFixed(5));
+        setLngInput(result.lng.toFixed(5));
+      } else {
+        setGeoError('No results for that address');
+      }
+    } catch {
+      setGeoError('Could not search — check your connection');
+    } finally {
+      setGeocoding(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -146,13 +204,27 @@ export default function SubmitLocationPage() {
       {/* Address */}
       <div>
         <label className="text-[11px] uppercase tracking-[.08em] text-ink-mute font-mono mb-1.5 block">Address</label>
-        <input
-          type="text"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
-          placeholder="e.g. 123 Main St, Dallas, TX"
-        />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => { setAddress(e.target.value); setGeoError(''); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleGeocode(); } }}
+            className="flex-1 h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
+            placeholder="e.g. 123 Main St, Dallas, TX"
+          />
+          <button
+            type="button"
+            onClick={handleGeocode}
+            disabled={geocoding || !address.trim()}
+            className="h-11 px-4 rounded-card bg-surface border border-chip-border text-[13px] text-accent font-semibold hover:bg-accent/10 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[.97] transition-transform duration-100 whitespace-nowrap"
+          >
+            {geocoding ? 'Searching...' : 'Search'}
+          </button>
+        </div>
+        {geoError && (
+          <p className="text-[12px] text-danger mt-1">{geoError}</p>
+        )}
       </div>
 
       {/* Map picker */}
@@ -170,6 +242,7 @@ export default function SubmitLocationPage() {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <LocationPicker onPick={handleMapPick} />
+            <RecenterMap center={[lat, lng]} />
             <Marker position={[lat, lng]} icon={pickerIcon} />
           </MapContainer>
         </div>
@@ -183,7 +256,9 @@ export default function SubmitLocationPage() {
             type="text"
             value={latInput}
             onChange={(e) => handleLatChange(e.target.value)}
+            onPaste={handleLatPaste}
             className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink font-mono focus:outline-none focus:border-accent"
+            placeholder="Paste coords like (33.02, -96.65)"
           />
         </div>
         <div>

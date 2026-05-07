@@ -42,7 +42,7 @@ export default function AppShell() {
 
         {/* Bottom Tab Bar — hidden on full-screen pages */}
         {!hideTabBar && (
-          <nav className="fixed bottom-0 inset-x-0 h-[84px] bg-tab-bg/85 backdrop-blur-xl border-t border-tab-border flex items-start justify-around pt-2.5 pb-safe z-30">
+          <nav className="fixed bottom-0 inset-x-0 h-[72px] bg-tab-bg/85 backdrop-blur-xl border-t border-tab-border flex items-center justify-around pb-safe z-30">
             {tabs.map((tab) => {
               const active = isActive(tab.path);
               return (

@@ -90,8 +90,9 @@ export default function LocationCard({ location, onClick, isLiked, onToggleLike,
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
-        className="ml-auto inline-flex items-center gap-1.5 rounded-pill border border-chip-border px-3.5 py-1.5 text-[12px] font-medium text-ink hover:bg-surface active:scale-[.97] transition-transform duration-100"
+        className="ml-auto inline-flex items-center gap-1.5 rounded-pill bg-accent/20 border border-accent/40 px-3.5 py-1.5 text-[12px] font-semibold text-accent hover:bg-accent/30 active:scale-[.97] transition-all duration-100"
       >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
         Directions
       </a>
     </div>

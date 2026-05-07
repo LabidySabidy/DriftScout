@@ -52,7 +52,8 @@ export default function PinPreviewPopover({ location, position, onClose, onViewM
             <img
               src={photoUrl}
               alt={location.name}
-              className="w-full aspect-[16/9] object-cover rounded bg-surface-2 mb-3"
+              className="w-full aspect-[16/9] object-cover rounded bg-surface-2 mb-3 cursor-pointer"
+              onClick={() => { navigate(`/location/${location.id}`); onClose(); }}
             />
           )}
 
@@ -95,12 +96,12 @@ export default function PinPreviewPopover({ location, position, onClose, onViewM
               href={`https://www.google.com/maps/dir//${location.latitude},${location.longitude}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-9 rounded-card border border-chip-border px-3 inline-flex items-center gap-1.5 text-ink-mute hover:bg-surface-2 text-[12px] active:scale-[.98] transition-transform duration-100"
+              className="h-9 rounded-card bg-accent/20 border border-accent/40 px-3 inline-flex items-center gap-1.5 text-accent font-semibold hover:bg-accent/30 text-[12px] active:scale-[.98] transition-all duration-100"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
               </svg>
-              Dir
+              Directions
             </a>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { LocationWithSubmitter } from '../types';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import PinPreviewSheet from './PinPreviewSheet';
@@ -51,15 +52,22 @@ function RecenterMap({ center }: { center: [number, number] }) {
 }
 
 // ── Handles fly-to when selectedId changes externally ──
-function FlyToSelected({ selectedId, locations }: { selectedId: string | null | undefined; locations: LocationWithSubmitter[] }) {
+function FlyToSelected({ selectedId, locations, onPosition }: { selectedId: string | null | undefined; locations: LocationWithSubmitter[]; onPosition: (pos: { x: number; y: number }) => void }) {
   const map = useMap();
   useEffect(() => {
     if (!selectedId) return;
     const loc = locations.find((l) => l.id === selectedId);
     if (loc) {
       map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });
+      // Compute screen position: pin will be at map center after flyTo
+      const containerEl = map.getContainer();
+      const rect = containerEl.getBoundingClientRect();
+      onPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
     }
-  }, [selectedId, locations, map]);
+  }, [selectedId, locations, map, onPosition]);
   return null;
 }
 
@@ -149,7 +157,7 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <RecenterMap center={center} />
-        <FlyToSelected selectedId={selectedId} locations={locations} />
+        <FlyToSelected selectedId={selectedId} locations={locations} onPosition={setPinPosition} />
         <MapClickHandler onMapClick={handleClose} />
 
         {locations.map((loc) => (
@@ -162,8 +170,8 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
         ))}
       </MapContainer>
 
-      {/* Pin preview — positioned near the pin (suppressed when parent handles detail) */}
-      {!suppressPreview && selected && (
+      {/* Pin preview — portaled to document.body to escape overflow-hidden parents */}
+      {!suppressPreview && selected && createPortal(
         isDesktop ? (
           <PinPreviewPopover
             location={selected}
@@ -176,7 +184,8 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
             location={selected}
             onClose={handleClose}
           />
-        )
+        ),
+        document.body
       )}
     </div>
   );
