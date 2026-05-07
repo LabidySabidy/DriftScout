@@ -24,7 +24,7 @@ interface MapViewProps {
 function createDefaultIcon() {
   return L.divIcon({
     className: '',
-    html: '<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #0D0D0F;box-shadow:0 0 0 4px rgba(74,158,255,0.18),0 4px 12px rgba(0,0,0,0.5);cursor:pointer;"></div>',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#3B82F6;border:2px solid rgba(255,255,255,0.3);box-shadow:0 0 0 4px rgba(59,130,246,0.25),0 4px 12px rgba(0,0,0,0.6);cursor:pointer;"></div>',
     iconSize: [14, 14],
     iconAnchor: [7, 7],
   });
