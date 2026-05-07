@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLikes } from '../hooks/useLikes';
 import { useNotifications } from '../hooks/useNotifications';
 import { useIsDesktop } from '../hooks/useIsDesktop';
@@ -32,6 +32,17 @@ export default function HomePage() {
   const filtered = filterTag
     ? locations.filter((loc) => loc.tags?.includes(filterTag))
     : locations;
+
+  // Extract all unique tags from loaded locations, sorted by frequency desc then alphabetically
+  const allTags = useMemo(() => {
+    const counts = new Map<string, number>();
+    locations.forEach((loc) => {
+      loc.tags?.forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1));
+    });
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([tag]) => tag);
+  }, [locations]);
 
   return (
     <div className="pb-20 lg:pb-0">
@@ -79,9 +90,38 @@ export default function HomePage() {
         </button>
       </div>
 
+      {/* Tag filter chips */}
+      {allTags.length > 0 && (
+        <div className="px-4 pb-3 lg:px-0 lg:max-w-[680px] lg:mx-auto">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-none -mx-4 px-4 lg:mx-0 lg:px-0">
+            {allTags.map((tag) => {
+              const active = filterTag === tag;
+              return (
+                <button
+                  key={tag}
+                  onClick={() => setFilterTag(active ? null : tag)}
+                  className={`shrink-0 inline-flex items-center gap-1 rounded-pill border px-3 py-1.5 text-[12px] transition-colors active:scale-[.97] transition-transform duration-100 ${
+                    active
+                      ? 'border-accent bg-accent/15 text-accent'
+                      : 'border-chip-border text-ink-mute hover:border-ink-dim'
+                  }`}
+                >
+                  #{tag}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Content: feed */}
       <div className={`lg:max-w-[1100px] lg:mx-auto lg:px-6 lg:py-8`}>
         <div className="px-4 lg:max-w-[680px] lg:mx-auto lg:px-0">
+          {filterTag && (
+            <p className="text-[11px] text-ink-mute font-mono mb-3">
+              {filtered.length} spot{filtered.length !== 1 ? 's' : ''} tagged <span className="text-accent">#{filterTag}</span>
+            </p>
+          )}
           {loading ? (
             <div className="space-y-6">
               {[...Array(3)].map((_, i) => (

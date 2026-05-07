@@ -6,6 +6,7 @@ import { useLikes } from '../hooks/useLikes';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import type { LocationWithSubmitter } from '../types';
 import LocationCard from '../components/LocationCard';
+import AvatarCropModal from '../components/AvatarCropModal';
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -65,15 +67,17 @@ export default function ProfilePage() {
     setEditingName(false);
   };
 
-  const handleAvatarUpload = async (file: File) => {
+  const handleAvatarUpload = async (blob: Blob) => {
     if (!user) return;
     setUploadingAvatar(true);
     const path = `avatars/${user.id}`;
+    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
     await supabase.storage.from('location-photos').upload(path, file, { upsert: true });
     const avatarUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${path}`;
     await supabase.from('profiles').upsert({ id: user.id, avatar_url: avatarUrl }, { onConflict: 'id' });
     setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : { username: null, avatar_url: avatarUrl });
     setUploadingAvatar(false);
+    setCropFile(null);
   };
 
   if (loading) {
@@ -274,10 +278,11 @@ export default function ProfilePage() {
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) handleAvatarUpload(file);
+            if (file) setCropFile(file);
             e.target.value = '';
           }}
         />
+        {cropFile ? <AvatarCropModal file={cropFile} onSave={(blob) => { handleAvatarUpload(blob); }} onCancel={() => setCropFile(null)} /> : null}
       </div>
     );
   }
@@ -317,6 +322,7 @@ export default function ProfilePage() {
           e.target.value = '';
         }}
       />
+      {cropFile ? <AvatarCropModal file={cropFile} onSave={(blob) => { handleAvatarUpload(blob); }} onCancel={() => setCropFile(null)} /> : null}
     </div>
   );
 }
