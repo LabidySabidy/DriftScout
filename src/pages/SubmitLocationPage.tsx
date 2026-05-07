@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -163,6 +163,34 @@ export default function SubmitLocationPage() {
       setGeocoding(false);
     }
   };
+
+  // Reverse geocode: lat/lng → city + state via Nominatim
+  const reverseGeocode = useCallback(async (latitude: number, longitude: number) => {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+    try {
+      const res = await fetch(url, { headers: { 'User-Agent': 'DriftScout/1.0' } });
+      if (!res.ok) return;
+      const data = await res.json();
+      const addr = data?.address;
+      if (!addr) return;
+      const city = addr.city || addr.town || addr.village || addr.hamlet || '';
+      const st = addr.state || '';
+      if (city) setAddress(city);
+      if (st) setState(st);
+    } catch {
+      // silently fail — address is optional
+    }
+  }, []);
+
+  // Debounced reverse geocode when lat/lng change (skip initial mount)
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) { mounted.current = true; return; }
+    const timer = setTimeout(() => {
+      reverseGeocode(lat, lng);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [lat, lng, reverseGeocode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
