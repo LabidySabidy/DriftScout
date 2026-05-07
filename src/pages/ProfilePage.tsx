@@ -70,10 +70,10 @@ export default function ProfilePage() {
   const handleAvatarUpload = async (blob: Blob) => {
     if (!user) return;
     setUploadingAvatar(true);
-    const path = `avatars/${user.id}`;
+    const path = `avatars/${user.id}-${Date.now()}`;
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
-    await supabase.storage.from('location-photos').upload(path, file, { upsert: true });
-    const avatarUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${path}?v=${Date.now()}`;
+    await supabase.storage.from('location-photos').upload(path, file);
+    const avatarUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${path}`;
     await supabase.from('profiles').upsert({ id: user.id, avatar_url: avatarUrl }, { onConflict: 'id' });
     setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : { username: null, avatar_url: avatarUrl });
     setUploadingAvatar(false);
