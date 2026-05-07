@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface LocationPhoto {
@@ -11,14 +11,17 @@ interface LocationPhoto {
 interface CommunityPhotosProps {
   locationId: string;
   onPhotoClick?: (photoUrl: string) => void;
+  canDelete?: boolean;
+  onDelete?: (photoId: string) => void;
 }
 
-export default function CommunityPhotos({ locationId, onPhotoClick }: CommunityPhotosProps) {
+export default function CommunityPhotos({ locationId, onPhotoClick, canDelete, onDelete }: CommunityPhotosProps) {
   const [photos, setPhotos] = useState<LocationPhoto[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchPhotos = useCallback(() => {
     supabase
       .from('location_photos')
       .select('*')
@@ -29,6 +32,10 @@ export default function CommunityPhotos({ locationId, onPhotoClick }: CommunityP
         setLoading(false);
       });
   }, [locationId]);
+
+  useEffect(() => {
+    fetchPhotos();
+  }, [fetchPhotos]);
 
   if (loading) {
     return (
@@ -60,14 +67,35 @@ export default function CommunityPhotos({ locationId, onPhotoClick }: CommunityP
       </h4>
       <div className="grid grid-cols-4 gap-1.5 lg:grid-cols-6">
         {displayPhotos.map((photo) => (
-          <img
-            key={photo.id}
-            src={photoUrl(photo)}
-            alt=""
-            className="aspect-square rounded bg-surface object-cover cursor-pointer hover:opacity-80 transition-opacity"
-            loading="lazy"
-            onClick={() => onPhotoClick?.(photoUrl(photo))}
-          />
+          <div key={photo.id} className="aspect-square rounded bg-surface relative group">
+            <img
+              src={photoUrl(photo)}
+              alt=""
+              className="w-full h-full rounded object-cover cursor-pointer group-hover:opacity-80 transition-opacity"
+              loading="lazy"
+              onClick={() => onPhotoClick?.(photoUrl(photo))}
+            />
+            {canDelete && (
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  setDeleting(photo.id);
+                  await onDelete?.(photo.id);
+                  setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+                  setDeleting(null);
+                }}
+                disabled={deleting === photo.id}
+                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-ink flex items-center justify-center text-[13px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger/80 active:scale-[.97]"
+                title="Delete photo"
+              >
+                {deleting === photo.id ? (
+                  <span className="w-3 h-3 border border-ink border-t-transparent rounded-full animate-spin inline-block" />
+                ) : (
+                  '✕'
+                )}
+              </button>
+            )}
+          </div>
         ))}
         {hasMore && !expanded && (
           <button

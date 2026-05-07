@@ -153,8 +153,9 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
         zoomControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://api.maptiler.com/maps/hybrid-v4-dark/256/{z}/{x}/{y}.jpg?key=wT95FNHoOtr68B17GSfk"
+          maxZoom={20}
         />
         <RecenterMap center={center} />
         <FlyToSelected selectedId={selectedId} locations={locations} onPosition={setPinPosition} />

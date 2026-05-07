@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -16,6 +16,11 @@ export default function ProfilePage() {
   const [liked, setLiked] = useState<LocationWithSubmitter[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'submitted' | 'liked'>('submitted');
+  const [profile, setProfile] = useState<{ username: string | null; avatar_url: string | null } | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -31,15 +36,45 @@ export default function ProfilePage() {
             .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
             .in('id', Array.from(likedIds))
         : Promise.resolve({ data: [], error: null }),
-    ]).then(([s, l]) => {
+      supabase
+        .from('profiles')
+        .select('username, avatar_url')
+        .eq('id', user.id)
+        .single(),
+    ]).then(([s, l, p]) => {
       if (s.data) setSubmitted(s.data as LocationWithSubmitter[]);
       if (l.data) setLiked(l.data as LocationWithSubmitter[]);
+      if (p.data) setProfile(p.data);
       setLoading(false);
     });
   }, [user, likedIds]);
 
-  const avatarUrl = user?.user_metadata?.avatar_url;
-  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || 'Scout';
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
+  const googleName = user?.user_metadata?.full_name || user?.user_metadata?.name || 'Scout';
+  const displayName = profile?.username || googleName;
+
+  const handleSaveName = async () => {
+    const trimmed = nameValue.trim();
+    if (!trimmed || !user) return;
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: user.id, username: trimmed }, { onConflict: 'id' });
+    if (!error) {
+      setProfile((prev) => prev ? { ...prev, username: trimmed } : { username: trimmed, avatar_url: null });
+    }
+    setEditingName(false);
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    const path = `avatars/${user.id}`;
+    await supabase.storage.from('location-photos').upload(path, file, { upsert: true });
+    const avatarUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${path}`;
+    await supabase.from('profiles').upsert({ id: user.id, avatar_url: avatarUrl }, { onConflict: 'id' });
+    setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : { username: null, avatar_url: avatarUrl });
+    setUploadingAvatar(false);
+  };
 
   if (loading) {
     return (
@@ -62,15 +97,51 @@ export default function ProfilePage() {
     </div>
   );
 
+  const displayNameEl = editingName ? (
+    <input
+      type="text"
+      value={nameValue}
+      onChange={(e) => setNameValue(e.target.value)}
+      onBlur={handleSaveName}
+      onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
+      className="font-display font-bold text-[22px] lg:text-[26px] text-ink bg-surface border border-accent rounded-card px-3 py-1 outline-none w-full max-w-[260px] text-center lg:text-left"
+      autoFocus
+    />
+  ) : (
+    <h1
+      className="font-display font-bold text-[22px] lg:text-[26px] text-ink cursor-pointer hover:text-accent transition-colors"
+      onClick={() => { setNameValue(displayName); setEditingName(true); }}
+      title="Click to edit"
+    >
+      {displayName}
+    </h1>
+  );
+
+  const avatarEl = (
+    <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+      {avatarUrl ? (
+        <img src={avatarUrl} alt="" className={`w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-full bg-surface ring-2 ring-chip-border object-cover transition-opacity ${uploadingAvatar ? 'opacity-50' : 'group-hover:opacity-80'}`} />
+      ) : (
+        <div className={`w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-full bg-surface ring-2 ring-chip-border transition-opacity ${uploadingAvatar ? 'opacity-50' : 'group-hover:opacity-80'}`} />
+      )}
+      <div className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+        {uploadingAvatar ? (
+          <div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="drop-shadow-lg">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        )}
+      </div>
+    </div>
+  );
+
   const profileHeader = (
     <div className="lg:sticky lg:top-10 lg:self-start lg:space-y-5">
       <div className="flex flex-col items-center gap-3 mb-2 lg:items-start">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="" className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-full bg-surface ring-2 ring-chip-border object-cover" />
-        ) : (
-          <div className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-full bg-surface ring-2 ring-chip-border" />
-        )}
-        <h1 className="font-display font-bold text-[22px] text-ink lg:text-[26px]">{displayName}</h1>
+        {avatarEl}
+        {displayNameEl}
       </div>
       {stats}
       <button onClick={signOut} className="hidden lg:inline-flex text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 active:scale-[.97] transition-transform duration-100 mt-4">
@@ -196,6 +267,17 @@ export default function ProfilePage() {
         <button onClick={signOut} className="lg:hidden text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 mt-4 active:scale-[.97] transition-transform duration-100">
           Sign out
         </button>
+        <input
+          ref={avatarInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleAvatarUpload(file);
+            e.target.value = '';
+          }}
+        />
       </div>
     );
   }
@@ -204,12 +286,8 @@ export default function ProfilePage() {
   return (
     <div className="px-4 pt-4 pb-24">
       <div className="flex flex-col items-center gap-3 mb-2">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="" className="w-[88px] h-[88px] rounded-full bg-surface ring-2 ring-chip-border object-cover" />
-        ) : (
-          <div className="w-[88px] h-[88px] rounded-full bg-surface ring-2 ring-chip-border" />
-        )}
-        <h1 className="font-display font-bold text-[22px] text-ink">{displayName}</h1>
+        {avatarEl}
+        {displayNameEl}
       </div>
       <div className="flex justify-center gap-8 mt-3">
         <div className="text-center">
@@ -228,6 +306,17 @@ export default function ProfilePage() {
       <div className="mt-4">
         {content}
       </div>
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleAvatarUpload(file);
+          e.target.value = '';
+        }}
+      />
     </div>
   );
 }

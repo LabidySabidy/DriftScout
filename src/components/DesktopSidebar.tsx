@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import { useLeaderboard } from '../hooks/useLeaderboard';
+import { supabase } from '../lib/supabase';
 import NotificationsDropdown from '../pages/NotificationsDropdown';
 
 interface DesktopSidebarProps {
@@ -68,8 +70,26 @@ export default function DesktopSidebar({
     return currentPath.startsWith(path);
   };
 
-  const avatarUrl = user?.user_metadata?.avatar_url;
-  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || 'Scout';
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('username, avatar_url')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setProfileName(data.username);
+          setProfileAvatar(data.avatar_url);
+        }
+      });
+  }, [user]);
+
+  const avatarUrl = profileAvatar || user?.user_metadata?.avatar_url;
+  const displayName = profileName || user?.user_metadata?.full_name || user?.user_metadata?.name || 'Scout';
 
   return (
     <aside className="w-[220px] shrink-0 h-dvh sticky top-0 bg-bg border-r border-tab-border flex flex-col p-4 gap-1 z-30">

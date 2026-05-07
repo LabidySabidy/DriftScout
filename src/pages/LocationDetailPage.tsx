@@ -282,6 +282,16 @@ export default function LocationDetailPage() {
       {/* Community photos */}
       <CommunityPhotos
         locationId={id!}
+        canDelete={user?.id === location.submitter_id}
+        onDelete={async (photoId) => {
+          // Find the photo record to get its storage path
+          const photo = communityPhotos.find(p => p.id === photoId) ?? allPhotos.find(p => p.id === photoId);
+          if (photo) {
+            await supabase.storage.from('location-photos').remove([photo.storage_path]);
+          }
+          await supabase.from('location_photos').delete().eq('id', photoId);
+          setCommunityPhotos(prev => prev.filter(p => p.id !== photoId));
+        }}
         onPhotoClick={(url) => {
           const idx = allPhotos.findIndex(
             (p) => `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${p.storage_path}` === url
