@@ -17,6 +17,7 @@ export default function HomePage() {
   const [locations, setLocations] = useState<LocationWithSubmitter[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [showFilter, setShowFilter] = useState(false);
 
   const loadLocations = useCallback(async () => {
     setLoading(true);
@@ -82,6 +83,42 @@ export default function HomePage() {
           </svg>
           <span className="text-[15px] text-ink-mute">Search city or spot...</span>
         </div>
+        {allTags.length > 0 && (
+          <div className="relative">
+            <button
+              onClick={() => setShowFilter(!showFilter)}
+              className={`bg-surface rounded-card px-4 py-2.5 text-sm font-medium active:scale-[.97] transition-transform duration-100 ${filterTag ? 'text-accent' : 'text-ink'}`}
+            >
+              {filterTag ? `#${filterTag}` : 'Filter'}
+            </button>
+            {showFilter && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowFilter(false)} />
+                <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-bg border border-chip-border rounded-card shadow-panel py-1 max-h-[60vh] overflow-y-auto overscroll-contain">
+                  <button
+                    onClick={() => { setFilterTag(null); setShowFilter(false); }}
+                    className={`w-full text-left px-3 py-2 text-[13px] hover:bg-surface transition-colors ${!filterTag ? 'text-accent font-semibold' : 'text-ink-mute'}`}
+                  >
+                    All spots
+                  </button>
+                  {allTags.map((tag) => {
+                    const active = filterTag === tag;
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() => { setFilterTag(active ? null : tag); setShowFilter(false); }}
+                        className={`w-full text-left px-3 py-2 text-[13px] hover:bg-surface transition-colors flex items-center justify-between ${active ? 'text-accent font-semibold' : 'text-ink-mute'}`}
+                      >
+                        <span>#{tag}</span>
+                        {active && <span className="text-[10px]">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        )}
         <button
           onClick={loadLocations}
           className="bg-surface rounded-card px-4 py-2.5 text-sm font-medium text-ink active:scale-[.97] transition-transform duration-100"
@@ -89,30 +126,6 @@ export default function HomePage() {
           Refresh
         </button>
       </div>
-
-      {/* Tag filter chips */}
-      {allTags.length > 0 && (
-        <div className="px-4 pb-3 lg:px-0 lg:max-w-[680px] lg:mx-auto">
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-none -mx-4 px-4 lg:mx-0 lg:px-0">
-            {allTags.map((tag) => {
-              const active = filterTag === tag;
-              return (
-                <button
-                  key={tag}
-                  onClick={() => setFilterTag(active ? null : tag)}
-                  className={`shrink-0 inline-flex items-center gap-1 rounded-pill border px-3 py-1.5 text-[12px] transition-colors active:scale-[.97] transition-transform duration-100 ${
-                    active
-                      ? 'border-accent bg-accent/15 text-accent'
-                      : 'border-chip-border text-ink-mute hover:border-ink-dim'
-                  }`}
-                >
-                  #{tag}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Content: feed */}
       <div className={`lg:max-w-[1100px] lg:mx-auto lg:px-6 lg:py-8`}>
