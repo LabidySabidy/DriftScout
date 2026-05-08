@@ -4,6 +4,9 @@
 -- The parameter name "user_id" shadows the column "user_id" in invite_redemptions,
 -- causing "column reference user_id is ambiguous" on the ON CONFLICT clause.
 -- Rename parameter to "uid" to disambiguate.
+-- Must DROP first because parameter name change isn't allowed with CREATE OR REPLACE.
+
+DROP FUNCTION IF EXISTS validate_invite_code(text, uuid);
 
 CREATE OR REPLACE FUNCTION validate_invite_code(code_param TEXT, uid UUID)
 RETURNS TEXT AS $$
