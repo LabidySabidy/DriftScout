@@ -39,6 +39,7 @@ export default function ProfilePage() {
       .from('locations')
       .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
       .eq('submitter_id', profileUserId)
+      .neq('moderation_status', 'rejected')
       .order('created_at', { ascending: false });
 
     const profileQ = supabase
@@ -54,6 +55,7 @@ export default function ProfilePage() {
             .from('locations')
             .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
             .in('id', Array.from(likedIds))
+            .neq('moderation_status', 'rejected')
         : Promise.resolve({ data: [], error: null });
 
       Promise.all([submittedQ, likedQ, profileQ]).then(([s, l, p]) => {
@@ -75,6 +77,7 @@ export default function ProfilePage() {
                 .from('locations')
                 .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
                 .in('id', ids)
+                .neq('moderation_status', 'rejected')
             : Promise.resolve({ data: [], error: null });
 
           const [s, l, p] = await Promise.all([submittedQ, likedQ, profileQ]);
