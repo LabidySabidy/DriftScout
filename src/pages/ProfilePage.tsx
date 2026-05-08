@@ -1,9 +1,11 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useLikes } from '../hooks/useLikes';
 import { useIsDesktop } from '../hooks/useIsDesktop';
+import { adminSetRole } from '../lib/admin';
 import type { LocationWithSubmitter } from '../types';
 import LocationCard from '../components/LocationCard';
 import AvatarCropModal from '../components/AvatarCropModal';
@@ -29,6 +31,12 @@ export default function ProfilePage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Admin role changer
+  const [viewerRole, setViewerRole] = useState<string | null>(null);
+  const [changingRole, setChangingRole] = useState(false);
+  const [roleError, setRoleError] = useState<string | null>(null);
+  const [targetRole, setTargetRole] = useState(profile?.role || 'scout');
 
   // ── Data fetching ──
   useEffect(() => {
@@ -88,6 +96,19 @@ export default function ProfilePage() {
         });
     }
   }, [profileUserId, isOwnProfile, likedIds, user]);
+
+  // ── Fetch viewer role for admin controls ──
+  useEffect(() => {
+    if (isOwnProfile || !user) return;
+    supabase.from('profiles').select('role').eq('id', user.id).single().then(({ data }) => {
+      if (data) setViewerRole(data.role);
+    });
+  }, [isOwnProfile, user]);
+
+  // Sync targetRole when profile loads
+  useEffect(() => {
+    if (profile?.role) setTargetRole(profile.role);
+  }, [profile?.role]);
 
   // ── Display values ──
   const profileAvatarUrl = profile?.avatar_url;
@@ -207,6 +228,47 @@ export default function ProfilePage() {
         {displayNameEl}
       </div>
       {stats}
+      {/* Admin role changer — only when viewing someone else's profile */}
+      {!isOwnProfile && viewerRole === 'admin' && profile?.role && (
+        <div className="mt-4 border border-chip-border rounded-card p-3 space-y-2">
+          <p className="text-[10px] uppercase tracking-[.08em] text-ink-dim font-mono">Role</p>
+          <select
+            value={targetRole}
+            onChange={(e) => setTargetRole(e.target.value)}
+            className="w-full bg-surface border border-chip-border rounded-card px-3 py-2 text-[14px] text-ink outline-none focus:border-accent"
+          >
+            <option value="admin">Admin</option>
+            <option value="trusted">Trusted</option>
+            <option value="scout">Scout</option>
+            <option value="pending">Pending</option>
+          </select>
+          {targetRole !== profile.role && (
+            <>
+              {roleError && (
+                <p className="text-[11px] text-red-400 font-mono">{roleError}</p>
+              )}
+              <button
+                onClick={async () => {
+                  if (!profileUserId) return;
+                  setChangingRole(true);
+                  setRoleError(null);
+                  const result = await adminSetRole(profileUserId, targetRole);
+                  if (result.success) {
+                    setProfile((prev) => prev ? { ...prev, role: targetRole } : null);
+                  } else {
+                    setRoleError(result.error || 'Failed to change role');
+                  }
+                  setChangingRole(false);
+                }}
+              disabled={changingRole}
+              className="w-full h-9 rounded-card bg-accent text-ink font-semibold text-[13px] active:scale-[.98] transition-transform disabled:opacity-40"
+            >
+              {changingRole ? 'Saving...' : `Set to ${targetRole}`}
+            </button>
+            </>
+          )}
+        </div>
+      )}
       {isOwnProfile && user && profile?.role && (profile.role === 'admin' || profile.role === 'trusted') && (
         <div className="hidden lg:block mt-4 border border-chip-border rounded-card p-3">
           <InviteCodePanelInner userId={user.id} />

@@ -165,7 +165,10 @@ export default function AdminUsersPage() {
           <div className="space-y-1">
             {sorted.map((user) => (
               <div key={user.id}>
-                <div className="flex items-center gap-3 p-2 rounded-card hover:bg-surface transition-colors group">
+                <div
+                  onClick={() => navigate(`/profile/${user.id}`)}
+                  className="flex items-center gap-3 p-2 rounded-card hover:bg-surface transition-colors group cursor-pointer"
+                >
                   {/* Avatar */}
                   {user.avatar_url ? (
                     <img src={user.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover bg-surface shrink-0" />
@@ -208,7 +211,8 @@ export default function AdminUsersPage() {
                   <div className="w-8 shrink-0 grid place-items-center">
                     {user.role !== 'admin' && (
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setConfirming(confirming === user.id ? null : user.id);
                           setDeleteAssets(false);
                           setError(null);

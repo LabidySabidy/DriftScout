@@ -63,3 +63,24 @@ export async function adminDeleteUser(
 
   return { success: false, error: (data as string) ?? 'Unknown error' };
 }
+
+export async function adminSetRole(
+  targetUserId: string,
+  newRole: string,
+): Promise<{ success: boolean; error: string | null }> {
+  const { data, error } = await supabase
+    .rpc('admin_set_role', {
+      target_user_id: targetUserId,
+      new_role: newRole,
+    });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  if (data === 'ok') {
+    return { success: true, error: null };
+  }
+
+  return { success: false, error: (data as string) ?? 'Unknown error' };
+}
