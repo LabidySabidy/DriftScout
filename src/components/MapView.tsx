@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { LocationWithSubmitter } from '../types';
 import { useIsDesktop } from '../hooks/useIsDesktop';
@@ -42,11 +42,13 @@ function createSelectedIcon() {
 const defaultIcon = createDefaultIcon();
 const selectedIcon = createSelectedIcon();
 
-// ── Recenter (only when no pin is selected) ──
+// ── Recenter (only on initial mount when no pin is selected) ──
 function RecenterMap({ center, skip }: { center: [number, number]; skip: boolean }) {
   const map = useMap();
+  const mounted = useRef(false);
   useEffect(() => {
-    if (skip) return;
+    if (mounted.current || skip) return;
+    mounted.current = true;
     map.setView(center, 11);
   }, [center, map, skip]);
   return null;

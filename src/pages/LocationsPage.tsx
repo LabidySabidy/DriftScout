@@ -22,17 +22,15 @@ function saveState(state: { viewMode: 'map' | 'list'; selectedId: string | null;
   } catch { /* ignore */ }
 }
 
-const restored = loadState();
-
 export default function LocationsPage() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { locations, userCoords, loading } = useLocations();
   const { likedIds, toggleLike } = useLikes();
-  const [searchCity, setSearchCity] = useState(restored?.searchCity ?? '');
+  const [searchCity, setSearchCity] = useState(() => loadState()?.searchCity ?? '');
   const [panelOpen, setPanelOpen] = useState(true);
-  const [selectedId, setSelectedId] = useState<string | null>(restored?.selectedId ?? null);
-  const [viewMode, setViewMode] = useState<'map' | 'list'>(restored?.viewMode ?? 'map');
+  const [selectedId, setSelectedId] = useState<string | null>(() => loadState()?.selectedId ?? null);
+  const [viewMode, setViewMode] = useState<'map' | 'list'>(() => loadState()?.viewMode ?? 'map');
 
   // Persist state on change
   useEffect(() => {
