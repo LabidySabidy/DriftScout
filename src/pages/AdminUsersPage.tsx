@@ -5,7 +5,7 @@ import { useIsDesktop } from '../hooks/useIsDesktop';
 import { fetchAdminUsers, adminDeleteUser, fetchWeeklyStats } from '../lib/admin';
 import type { AdminUser, WeeklyStats } from '../lib/admin';
 
-type SortKey = 'created_at' | 'username' | 'spot_count' | 'role';
+type SortKey = 'created_at' | 'username' | 'spot_count' | 'invites_sent' | 'role';
 type SortDir = 'asc' | 'desc';
 
 export default function AdminUsersPage() {
@@ -62,6 +62,7 @@ export default function AdminUsersPage() {
     const cmp =
       sortKey === 'username' ? a.username.localeCompare(b.username) :
       sortKey === 'spot_count' ? a.spot_count - b.spot_count :
+      sortKey === 'invites_sent' ? a.invites_sent - b.invites_sent :
       sortKey === 'role' ? a.role.localeCompare(b.role) :
       new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     return sortDir === 'desc' ? -cmp : cmp;
@@ -141,9 +142,15 @@ export default function AdminUsersPage() {
             </button>
             <button
               onClick={() => toggleSort('spot_count')}
-              className="w-14 text-center hover:text-ink-mute transition-colors shrink-0"
+              className="w-12 text-center hover:text-ink-mute transition-colors shrink-0"
             >
               Spots{sortArrow('spot_count')}
+            </button>
+            <button
+              onClick={() => toggleSort('invites_sent')}
+              className="w-[68px] text-center hover:text-ink-mute transition-colors shrink-0"
+            >
+              Invites{sortArrow('invites_sent')}
             </button>
             <button
               onClick={() => toggleSort('created_at')}
@@ -178,8 +185,18 @@ export default function AdminUsersPage() {
                   </span>
 
                   {/* Spot count */}
-                  <span className="text-[12px] font-mono text-ink-mute w-14 text-center shrink-0">
+                  <span className="text-[12px] font-mono text-ink-mute w-12 text-center shrink-0">
                     {user.spot_count}
+                  </span>
+
+                  {/* Invites */}
+                  <span className="text-[11px] font-mono text-ink-mute w-[68px] text-center shrink-0">
+                    {user.invites_accepted > 0 ? (
+                      <span className="text-green-400">{user.invites_accepted}</span>
+                    ) : (
+                      '0'
+                    )}
+                    <span className="text-ink-dim">/{user.invites_sent}</span>
                   </span>
 
                   {/* Joined */}
@@ -187,26 +204,28 @@ export default function AdminUsersPage() {
                     {new Date(user.created_at).toLocaleDateString()}
                   </span>
 
-                  {/* Delete button */}
-                  {user.role !== 'admin' && (
-                    <button
-                      onClick={() => {
-                        setConfirming(confirming === user.id ? null : user.id);
-                        setDeleteAssets(false);
-                        setError(null);
-                      }}
-                      className={`w-8 h-8 grid place-items-center rounded-full shrink-0 transition-colors ${
-                        confirming === user.id
-                          ? 'bg-red-500/20 text-red-400'
-                          : 'text-ink-dim opacity-0 group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400'
-                      }`}
-                      title="Delete user"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                      </svg>
-                    </button>
-                  )}
+                  {/* Delete button (always reserve space) */}
+                  <div className="w-8 shrink-0 grid place-items-center">
+                    {user.role !== 'admin' && (
+                      <button
+                        onClick={() => {
+                          setConfirming(confirming === user.id ? null : user.id);
+                          setDeleteAssets(false);
+                          setError(null);
+                        }}
+                        className={`w-8 h-8 grid place-items-center rounded-full transition-colors ${
+                          confirming === user.id
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'text-ink-dim opacity-0 group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400'
+                        }`}
+                        title="Delete user"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Confirmation panel */}

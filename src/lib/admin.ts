@@ -9,6 +9,8 @@ export interface AdminUser {
   created_at: string;
   spot_count: number;
   like_count: number;
+  invites_sent: number;
+  invites_accepted: number;
 }
 
 export async function fetchAdminUsers(): Promise<AdminUser[]> {

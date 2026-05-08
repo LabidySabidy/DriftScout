@@ -14,7 +14,9 @@ RETURNS TABLE(
   email TEXT,
   created_at TIMESTAMPTZ,
   spot_count BIGINT,
-  like_count BIGINT
+  like_count BIGINT,
+  invites_sent BIGINT,
+  invites_accepted BIGINT
 ) AS $$
 BEGIN
   -- Verify caller is admin
@@ -31,7 +33,9 @@ BEGIN
     u.email::TEXT,
     p.created_at,
     (SELECT COUNT(*) FROM locations WHERE submitter_id = p.id)::BIGINT AS spot_count,
-    (SELECT COUNT(*) FROM likes WHERE user_id = p.id)::BIGINT AS like_count
+    (SELECT COUNT(*) FROM likes WHERE user_id = p.id)::BIGINT AS like_count,
+    (SELECT COUNT(*) FROM invite_codes WHERE created_by = p.id)::BIGINT AS invites_sent,
+    (SELECT COUNT(*) FROM invite_codes WHERE created_by = p.id AND status = 'used')::BIGINT AS invites_accepted
   FROM profiles p
   JOIN auth.users u ON u.id = p.id
   ORDER BY p.created_at DESC;
