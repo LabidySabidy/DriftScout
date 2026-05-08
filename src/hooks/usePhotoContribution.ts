@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { compressImage } from '../lib/compressImage';
 
 export function usePhotoContribution() {
   const [uploading, setUploading] = useState(false);
@@ -10,10 +11,11 @@ export function usePhotoContribution() {
     setError(null);
 
     try {
-      const path = `${locationId}/community-${Date.now()}-${file.name}`;
+      const compressed = await compressImage(file);
+      const path = `${locationId}/community-${Date.now()}-${compressed.name}`;
       const { error: uploadError } = await supabase.storage
         .from('location-photos')
-        .upload(path, file);
+        .upload(path, compressed);
 
       if (uploadError) throw uploadError;
 

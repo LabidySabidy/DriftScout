@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { supabase } from '../lib/supabase';
+import { compressImage } from '../lib/compressImage';
 import { useAuth } from '../hooks/useAuth';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import 'leaflet/dist/leaflet.css';
@@ -253,10 +254,11 @@ export default function SubmitLocationPage() {
         if (locError || !location) throw locError || new Error('Failed to create location');
 
         for (const file of files) {
-          const path = `${location.id}/${Date.now()}-${file.name}`;
+          const compressed = await compressImage(file);
+          const path = `${location.id}/${Date.now()}-${compressed.name}`;
           const { error: uploadError } = await supabase.storage
             .from('location-photos')
-            .upload(path, file);
+            .upload(path, compressed);
 
           if (uploadError) throw uploadError;
 
