@@ -15,7 +15,7 @@ export default function InviteRequiredPage() {
       {/* Background image */}
       <div className="absolute inset-0">
         <img
-          src="/login-bg.jpg"
+          src="/background.jpg"
           alt=""
           className="w-full h-full object-cover"
         />
