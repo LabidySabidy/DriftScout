@@ -128,22 +128,22 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 text-center w-full max-w-md px-6 py-12">
+      {/* Content card — semi-transparent for legibility */}
+      <div className="relative z-10 text-center w-full max-w-md px-6 py-10 mx-4 rounded-card bg-black/45 backdrop-blur-sm border border-white/10">
         {/* Logo */}
         <h1
-          className="flex items-center justify-center gap-3 text-[42px] font-bold mb-3 text-white drop-shadow-lg"
+          className="flex items-center justify-center gap-2 text-[42px] font-bold mb-3 text-white drop-shadow-lg"
           style={{ fontFamily: "'Pacifico', cursive" }}
         >
-          <img src="/logo-icon.png" alt="" className="w-10 h-auto" />
+          <img src="/logo-icon.png" alt="" className="w-11 h-auto" />
           DriftScout
         </h1>
 
         {/* Subheader — warmer */}
-        <p className="text-white/80 text-[15px] leading-relaxed mb-2 max-w-[360px] mx-auto">
+        <p className="text-white/85 text-[15px] leading-relaxed mb-2 max-w-[360px] mx-auto">
           Welcome to DriftScout. Our mission is to help you find and share great
           locations to drift. This is a pre-release version — many things are
-          subject to change. Welcome to the community.
+          subject to change. Welcome in, Scout.
         </p>
 
         {/* Sign in button */}
@@ -161,7 +161,7 @@ export default function LoginPage() {
         </button>
 
         {/* Footer links */}
-        <div className="mt-6 flex items-center justify-center gap-4 text-[12px] text-white/60">
+        <div className="mt-6 flex items-center justify-center gap-4 text-[12px] text-white/50">
           <button
             onClick={() => setShowPrivacy(true)}
             className="hover:text-white/90 transition-colors underline underline-offset-2"

@@ -104,7 +104,7 @@ export default function DesktopSidebar({
         style={{ fontFamily: "'Pacifico', cursive" }}
         onClick={() => navigate('/')}
       >
-        <img src="/logo-icon.png" alt="" className="w-6 h-auto" />
+        <img src="/logo-icon.png" alt="" className="w-7 h-auto" />
         DriftScout
       </div>
 

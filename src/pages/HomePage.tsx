@@ -51,7 +51,7 @@ export default function HomePage() {
       <div className="px-4 pt-3 pb-2 flex items-center justify-between lg:px-0 lg:max-w-[680px] lg:mx-auto">
         <div>
           <h1 className="flex items-center gap-2 text-[22px] font-bold tracking-tight lg:font-display lg:text-[28px]" style={{ fontFamily: "'Pacifico', cursive" }}>
-            <img src="/logo-icon.png" alt="" className="w-7 h-auto lg:w-9" />
+            <img src="/logo-icon.png" alt="" className="w-8 h-auto lg:w-10" />
             DriftScout
           </h1>
           {!isDesktop && <span className="text-[9px] text-ink-mute">V1.0</span>}
