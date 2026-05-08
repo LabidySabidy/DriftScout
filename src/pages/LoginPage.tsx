@@ -143,7 +143,7 @@ export default function LoginPage() {
         <p className="text-white/85 text-[15px] leading-relaxed mb-2 max-w-[360px] mx-auto">
           Welcome to DriftScout. Our mission is to help you find and share great
           locations to drift. This is a pre-release version many things are
-          subject to change. \nWelcome in, Scout.
+          subject to change.   Welcome in, Scout.
         </p>
 
         {/* Sign in button */}
