@@ -225,7 +225,7 @@ export default function LocationsPage() {
           value={searchCity}
           onChange={(e) => setSearchCity(e.target.value)}
           placeholder="Search city or spot..."
-          className="flex-1 bg-transparent text-[14px] text-ink outline-none placeholder:text-ink-dim"
+          className="flex-1 bg-transparent text-[16px] text-ink outline-none placeholder:text-ink-dim"
         />
       </div>
 
