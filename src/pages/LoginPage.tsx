@@ -129,7 +129,7 @@ export default function LoginPage() {
       </div>
 
       {/* Content card — semi-transparent for legibility */}
-      <div className="relative z-10 text-center w-full max-w-md px-6 py-10 mx-4 rounded-card bg-black/45 backdrop-blur-sm border border-white/10">
+      <div className="relative z-10 text-center w-full max-w-md px-6 py-10 mx-4 rounded-card bg-black/20 backdrop-blur-sm border border-white/10">
         {/* Logo */}
         <h1
           className="flex items-center justify-center gap-2 text-[42px] font-bold mb-3 text-white drop-shadow-lg"
@@ -142,7 +142,7 @@ export default function LoginPage() {
         {/* Subheader — warmer */}
         <p className="text-white/85 text-[15px] leading-relaxed mb-2 max-w-[360px] mx-auto">
           Welcome to DriftScout. Our mission is to help you find and share great
-          locations to drift. This is a pre-release version — many things are
+          locations to drift. This is a pre-release version many things are
           subject to change. Welcome in, Scout.
         </p>
 
