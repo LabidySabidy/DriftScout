@@ -53,7 +53,7 @@ export default function PinPreviewPopover({ location, position, onClose, onViewM
               src={photoUrl}
               alt={location.name}
               className="w-full aspect-[16/9] object-cover rounded bg-surface-2 mb-3 cursor-pointer"
-              onClick={() => { navigate(`/location/${location.id}`); onClose(); }}
+              onClick={() => { navigate(`/location/${location.id}`); }}
             />
           )}
 
@@ -85,7 +85,6 @@ export default function PinPreviewPopover({ location, position, onClose, onViewM
                   onViewMore();
                 } else {
                   navigate(`/location/${location.id}`);
-                  onClose();
                 }
               }}
               className="flex-1 h-9 rounded-card bg-accent text-ink font-semibold text-[12px] active:scale-[.98] transition-transform duration-100"
