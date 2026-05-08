@@ -35,7 +35,7 @@ export default function AuthCallback() {
         setStatus('Validating invite code...');
         const { data: result, error } = await supabase.rpc('validate_invite_code', {
           code_param: inviteCode,
-          user_id: session.user.id,
+          uid: session.user.id,
         });
 
         sessionStorage.removeItem('invite_code');
