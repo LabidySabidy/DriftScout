@@ -42,12 +42,13 @@ function createSelectedIcon() {
 const defaultIcon = createDefaultIcon();
 const selectedIcon = createSelectedIcon();
 
-// ── Recenter ──
-function RecenterMap({ center }: { center: [number, number] }) {
+// ── Recenter (only when no pin is selected) ──
+function RecenterMap({ center, skip }: { center: [number, number]; skip: boolean }) {
   const map = useMap();
   useEffect(() => {
+    if (skip) return;
     map.setView(center, 11);
-  }, [center, map]);
+  }, [center, map, skip]);
   return null;
 }
 
@@ -201,7 +202,7 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
           url="https://api.maptiler.com/maps/hybrid-v4-dark/256/{z}/{x}/{y}.jpg?key=wT95FNHoOtr68B17GSfk"
           maxZoom={20}
         />
-        <RecenterMap center={center} />
+        <RecenterMap center={center} skip={!!selectedId} />
         <FlyToSelected selectedId={selectedId} locations={locations} onPosition={setPinPosition} />
         <MapClickHandler onMapClick={handleClose} />
 
