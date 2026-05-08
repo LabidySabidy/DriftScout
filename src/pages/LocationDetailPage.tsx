@@ -463,15 +463,15 @@ export default function LocationDetailPage() {
     );
   }
 
-  // ── Mobile: swipe down to dismiss ──
+  // ── Mobile: swipe down to dismiss (from anywhere when at top) ──
   return (
     <motion.div
       className="min-h-dvh bg-bg text-ink flex flex-col"
       drag={atTop ? 'y' : false}
-      dragConstraints={{ top: 0, bottom: 200 }}
-      dragElastic={0.4}
+      dragConstraints={{ top: 0, bottom: 250 }}
+      dragElastic={0.6}
       onDragEnd={(_, info) => {
-        if (info.offset.y > 100 || info.velocity.y > 500) {
+        if (info.offset.y > 70 || info.velocity.y > 400) {
           navigate(-1);
         }
       }}
@@ -490,7 +490,7 @@ export default function LocationDetailPage() {
         className="flex-1 overflow-y-auto overscroll-contain"
         onScroll={() => {
           if (bodyRef.current) {
-            setAtTop(bodyRef.current.scrollTop <= 0);
+            setAtTop(bodyRef.current.scrollTop <= 5);
           }
         }}
       >

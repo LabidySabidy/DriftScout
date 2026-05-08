@@ -2,11 +2,12 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 import DesktopSidebar from './DesktopSidebar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /** Routes where the mobile tab bar should be hidden (full-screen pages) */
-const FULL_SCREEN_PATHS = ['/location/', '/submit', '/notifications'];
+const FULL_SCREEN_PATHS = ['/location/', '/submit', '/notifications', '/admin/bugs'];
 
 export default function AppShell() {
   const isDesktop = useIsDesktop();
@@ -15,6 +16,14 @@ export default function AppShell() {
   const { unreadCount, notifications, markAllRead, markOneRead } = useNotifications();
   const { user } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').select('role').eq('id', user.id).single().then(({ data }) => {
+      if (data) setProfileRole(data.role);
+    });
+  }, [user]);
 
   const avatarUrl = user?.user_metadata?.avatar_url;
 
@@ -79,6 +88,18 @@ export default function AppShell() {
                 </button>
               );
             })}
+            {/* Bugs — admin only */}
+            {profileRole === 'admin' && (
+              <button
+                onClick={() => navigate('/admin/bugs')}
+                className={`flex flex-col items-center gap-1 text-[10px] active:scale-[.97] transition-transform duration-100 ${
+                  pathname.startsWith('/admin/bugs') ? 'text-ink' : 'text-ink-dim'
+                }`}
+              >
+                <span className="text-[16px]">🐛</span>
+                <span>Bugs</span>
+              </button>
+            )}
           </nav>
         )}
       </div>

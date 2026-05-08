@@ -7,6 +7,7 @@ import { useIsDesktop } from '../hooks/useIsDesktop';
 import { fetchAllLocations } from '../lib/locations';
 import LocationCard from '../components/LocationCard';
 import Leaderboard from '../components/Leaderboard';
+import ReportBugModal from '../components/ReportBugModal';
 import type { LocationWithSubmitter } from '../types';
 
 export default function HomePage() {
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
+  const [showBugModal, setShowBugModal] = useState(false);
 
   const loadLocations = useCallback(async () => {
     setLoading(true);
@@ -167,8 +169,19 @@ export default function HomePage() {
               <Leaderboard />
             </div>
           )}
+
+          {/* Report a Bug */}
+          <button
+            onClick={() => setShowBugModal(true)}
+            className="w-full mt-6 py-3 rounded-card border border-chip-border bg-surface/50 text-[13px] text-ink-mute hover:text-ink hover:border-accent/40 active:scale-[.98] transition-all duration-100 flex items-center justify-center gap-2 font-mono"
+          >
+            <span className="text-[15px]">🐛</span>
+            Report a Bug
+          </button>
         </div>
       </div>
+
+      <ReportBugModal open={showBugModal} onClose={() => setShowBugModal(false)} />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import LocationDetailRoute from './pages/LocationDetailRoute';
 import SubmitLocationPage from './pages/SubmitLocationPage';
 import NotificationsPage from './pages/NotificationsPage';
 import OnboardingPage from './pages/OnboardingPage';
+import AdminBugsPage from './pages/AdminBugsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -71,6 +72,7 @@ export default function App() {
           <Route path="location/:id" element={<LocationDetailRoute />} />
           <Route path="submit" element={<SubmitLocationPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="admin/bugs" element={<AdminBugsPage />} />
         </Route>
       </Routes>
       </ToastProvider>

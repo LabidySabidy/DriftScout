@@ -77,18 +77,20 @@ export default function DesktopSidebar({
 
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from('profiles')
-      .select('username, avatar_url')
+      .select('username, avatar_url, role')
       .eq('id', user.id)
       .single()
       .then(({ data }) => {
         if (data) {
           setProfileName(data.username);
           setProfileAvatar(data.avatar_url);
+          setProfileRole(data.role);
         }
       });
   }, [user, currentPath]);
@@ -165,6 +167,21 @@ export default function DesktopSidebar({
           />
         )}
       </div>
+
+      {/* Bugs — admin only */}
+      {profileRole === 'admin' && (
+        <button
+          onClick={() => navigate('/admin/bugs')}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-card text-[14px] transition-colors active:scale-[.97] mt-1 ${
+            currentPath.startsWith('/admin/bugs')
+              ? 'text-ink bg-surface relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:bg-accent before:rounded-r'
+              : 'text-ink-mute hover:bg-surface hover:text-ink'
+          }`}
+        >
+          <span className="text-[16px]">🐛</span>
+          <span>Bugs</span>
+        </button>
+      )}
 
       {/* Spacer */}
       <div className="flex-1" />
