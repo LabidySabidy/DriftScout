@@ -92,17 +92,16 @@ function FlyToSelected({ selectedId, locations, onPosition }: { selectedId: stri
   const prevId = useRef<string | null | undefined>(undefined);
   useEffect(() => {
     if (!selectedId || selectedId === prevId.current) return;
-    prevId.current = selectedId;
     const loc = locations.find((l) => l.id === selectedId);
-    if (loc) {
-      map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });
-      const containerEl = map.getContainer();
-      const rect = containerEl.getBoundingClientRect();
-      onPosition({
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-      });
-    }
+    if (!loc) return; // Locations not loaded yet — retry when they arrive
+    prevId.current = selectedId;
+    map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });
+    const containerEl = map.getContainer();
+    const rect = containerEl.getBoundingClientRect();
+    onPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    });
   }, [selectedId, locations, map, onPosition]);
   return null;
 }
