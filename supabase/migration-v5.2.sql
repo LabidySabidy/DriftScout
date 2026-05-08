@@ -5,6 +5,7 @@
 -- ADMIN_LIST_USERS RPC (SECURITY DEFINER)
 --    Returns all profiles with email + stats for admin dashboard
 -- ============================
+DROP FUNCTION IF EXISTS admin_list_users();
 CREATE OR REPLACE FUNCTION admin_list_users()
 RETURNS TABLE(
   id UUID,
