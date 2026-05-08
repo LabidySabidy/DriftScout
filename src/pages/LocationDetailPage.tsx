@@ -217,13 +217,18 @@ export default function LocationDetailPage() {
 
       {/* Submitter */}
       {location.submitter && (
-        <div className="flex items-center gap-3 pt-4 border-t border-chip-border">
-          {location.submitter.avatar_url && (
+        <div
+          onClick={() => navigate(`/profile/${location.submitter_id}`)}
+          className="flex items-center gap-3 pt-4 border-t border-chip-border cursor-pointer active:scale-[.98] transition-transform"
+        >
+          {location.submitter.avatar_url ? (
             <img src={location.submitter.avatar_url} alt="" className="w-10 h-10 rounded-full" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-surface" />
           )}
           <div>
-            <p className="text-sm font-medium text-ink">{location.submitter.username}</p>
-            <p className="text-xs text-ink-mute">Discovered {new Date(location.created_at).toLocaleDateString()}</p>
+            <p className="text-xs text-ink-mute">Discovered by <span className="text-sm font-medium text-ink">{location.submitter.username}</span></p>
+            <p className="text-xs text-ink-mute">{new Date(location.created_at).toLocaleDateString()}</p>
           </div>
         </div>
       )}

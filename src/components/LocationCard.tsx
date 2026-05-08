@@ -73,18 +73,6 @@ export default function LocationCard({ location, onClick, isLiked, onToggleLike,
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="1.75"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         )}
       </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          navigator.share?.({
-            title: location.name,
-            url: `/location/${location.id}`,
-          }).catch(() => {});
-        }}
-        className="p-1 -m-1 active:scale-90 transition-transform"
-      >
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="1.75"><path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
-      </button>
       <a
         href={`https://www.google.com/maps/dir//${location.latitude},${location.longitude}`}
         target="_blank"
