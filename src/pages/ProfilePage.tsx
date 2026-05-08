@@ -7,6 +7,7 @@ import { useIsDesktop } from '../hooks/useIsDesktop';
 import type { LocationWithSubmitter } from '../types';
 import LocationCard from '../components/LocationCard';
 import AvatarCropModal from '../components/AvatarCropModal';
+import { InviteCodePanelInner } from '../components/InviteCodePanel';
 
 export default function ProfilePage() {
   const { userId: paramUserId } = useParams<{ userId?: string }>();
@@ -22,7 +23,7 @@ export default function ProfilePage() {
   const [liked, setLiked] = useState<LocationWithSubmitter[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'submitted' | 'liked'>('submitted');
-  const [profile, setProfile] = useState<{ username: string | null; avatar_url: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ username: string | null; avatar_url: string | null; role: string | null } | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -42,7 +43,7 @@ export default function ProfilePage() {
 
     const profileQ = supabase
       .from('profiles')
-      .select('username, avatar_url')
+      .select('username, avatar_url, role')
       .eq('id', profileUserId)
       .single();
 
@@ -100,7 +101,7 @@ export default function ProfilePage() {
       .from('profiles')
       .upsert({ id: user.id, username: trimmed }, { onConflict: 'id' });
     if (!error) {
-      setProfile((prev) => prev ? { ...prev, username: trimmed } : { username: trimmed, avatar_url: null });
+      setProfile((prev) => prev ? { ...prev, username: trimmed } : { username: trimmed, avatar_url: null, role: null });
     }
     setEditingName(false);
   };
@@ -113,7 +114,7 @@ export default function ProfilePage() {
     await supabase.storage.from('location-photos').upload(path, file);
     const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${path}`;
     await supabase.from('profiles').upsert({ id: user.id, avatar_url: url }, { onConflict: 'id' });
-    setProfile(prev => prev ? { ...prev, avatar_url: url } : { username: null, avatar_url: url });
+    setProfile(prev => prev ? { ...prev, avatar_url: url } : { username: null, avatar_url: url, role: null });
     setUploadingAvatar(false);
     setCropFile(null);
   };
@@ -203,6 +204,11 @@ export default function ProfilePage() {
         {displayNameEl}
       </div>
       {stats}
+      {isOwnProfile && user && profile?.role && (profile.role === 'admin' || profile.role === 'trusted') && (
+        <div className="hidden lg:block mt-4 border border-chip-border rounded-card p-3">
+          <InviteCodePanelInner userId={user.id} />
+        </div>
+      )}
       {isOwnProfile && (
         <button onClick={signOut} className="hidden lg:inline-flex text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 active:scale-[.97] transition-transform duration-100 mt-4">
           Sign out
@@ -388,6 +394,14 @@ export default function ProfilePage() {
           {cropFile && <AvatarCropModal file={cropFile} onSave={(blob) => { handleAvatarUpload(blob); }} onCancel={() => setCropFile(null)} />}
         </>
       )}
+
+      {/* Invite generation — mobile, own profile, trusted+admin only */}
+      {isOwnProfile && user && profile?.role && (profile.role === 'admin' || profile.role === 'trusted') && (
+        <div className="mt-5 border border-chip-border rounded-card p-3">
+          <InviteCodePanelInner userId={user.id} />
+        </div>
+      )}
+
       {tabs}
       <div className="mt-4">
         {content}

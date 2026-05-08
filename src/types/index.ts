@@ -2,7 +2,19 @@ export interface Profile {
   id: string;
   username: string;
   avatar_url: string | null;
+  role: 'admin' | 'trusted' | 'scout' | 'pending';
   created_at: string;
+}
+
+export interface InviteCode {
+  id: string;
+  code: string;
+  created_by: string;
+  created_at: string;
+  expires_at: string;
+  used_by: string | null;
+  used_at: string | null;
+  status: 'active' | 'used' | 'expired' | 'burned_by_cap';
 }
 
 export interface Comment {

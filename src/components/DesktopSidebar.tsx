@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { supabase } from '../lib/supabase';
 import NotificationsDropdown from '../pages/NotificationsDropdown';
+import { InviteCodePanelInner } from './InviteCodePanel';
 import type { Notification } from '../hooks/useNotifications';
 
 interface DesktopSidebarProps {
@@ -77,18 +78,20 @@ export default function DesktopSidebar({
 
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from('profiles')
-      .select('username, avatar_url')
+      .select('username, avatar_url, role')
       .eq('id', user.id)
       .single()
       .then(({ data }) => {
         if (data) {
           setProfileName(data.username);
           setProfileAvatar(data.avatar_url);
+          setProfileRole(data.role);
         }
       });
   }, [user, currentPath]);
@@ -168,6 +171,13 @@ export default function DesktopSidebar({
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Invite code panel — trusted + admin only */}
+      {profileRole && (profileRole === 'admin' || profileRole === 'trusted') && (
+        <div className="mb-3">
+          <InviteCodePanelInner userId={user!.id} />
+        </div>
+      )}
 
       {/* Mini leaderboard */}
       {leaderboard.length > 0 && (

@@ -6,7 +6,9 @@ import { supabase } from './lib/supabase';
 import AppShell from './components/AppShell';
 import { ToastProvider } from './components/Toast';
 import LoginPage from './pages/LoginPage';
+import JoinPage from './pages/JoinPage';
 import AuthCallback from './pages/AuthCallback';
+import InviteRequiredPage from './pages/InviteRequiredPage';
 import HomePage from './pages/HomePage';
 import LocationsPage from './pages/LocationsPage';
 import LikedPage from './pages/LikedPage';
@@ -19,12 +21,17 @@ import OnboardingPage from './pages/OnboardingPage';
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [needsInvite, setNeedsInvite] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     if (!user) { setChecking(false); return; }
-    supabase.from('profiles').select('username').eq('id', user.id).single().then(({ data }) => {
-      setNeedsOnboarding(data?.username === 'Scout');
+    supabase.from('profiles').select('username, role').eq('id', user.id).single().then(({ data, error }) => {
+      if (error || !data || data.role === 'pending') {
+        setNeedsInvite(true);
+      } else {
+        setNeedsOnboarding(data.username === 'Scout');
+      }
       setChecking(false);
     });
   }, [user]);
@@ -38,6 +45,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return <Navigate to="/login" replace />;
+  if (needsInvite) return <Navigate to="/invite-required" replace />;
   if (needsOnboarding) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }
@@ -48,7 +56,9 @@ export default function App() {
       <ToastProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/join" element={<JoinPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/invite-required" element={<InviteRequiredPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
 
         {/* All authenticated routes under AppShell */}
