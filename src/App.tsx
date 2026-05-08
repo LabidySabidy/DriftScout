@@ -57,6 +57,7 @@ export default function App() {
           <Route path="locations" element={<LocationsPage />} />
           <Route path="liked" element={<LikedPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="profile/:userId" element={<ProfilePage />} />
           <Route path="location/:id" element={<LocationDetailRoute />} />
           <Route path="submit" element={<SubmitLocationPage />} />
           <Route path="notifications" element={<NotificationsPage />} />

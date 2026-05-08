@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useLikes } from '../hooks/useLikes';
@@ -9,10 +9,15 @@ import LocationCard from '../components/LocationCard';
 import AvatarCropModal from '../components/AvatarCropModal';
 
 export default function ProfilePage() {
+  const { userId: paramUserId } = useParams<{ userId?: string }>();
   const { user, signOut } = useAuth();
-  const { likedIds } = useLikes();
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
+
+  const profileUserId = paramUserId || user?.id;
+  const isOwnProfile = !paramUserId || paramUserId === user?.id;
+
+  const { likedIds } = useLikes();
   const [submitted, setSubmitted] = useState<LocationWithSubmitter[]>([]);
   const [liked, setLiked] = useState<LocationWithSubmitter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,34 +29,67 @@ export default function ProfilePage() {
   const [cropFile, setCropFile] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Data fetching ──
   useEffect(() => {
-    if (!user) return;
-    Promise.all([
-      supabase
-        .from('locations')
-        .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
-        .eq('submitter_id', user.id)
-        .order('created_at', { ascending: false }),
-      likedIds.size > 0
+    if (!profileUserId) return;
+    if (isOwnProfile && !user) return;
+
+    const submittedQ = supabase
+      .from('locations')
+      .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
+      .eq('submitter_id', profileUserId)
+      .order('created_at', { ascending: false });
+
+    const profileQ = supabase
+      .from('profiles')
+      .select('username, avatar_url')
+      .eq('id', profileUserId)
+      .single();
+
+    if (isOwnProfile) {
+      // Own profile: use useLikes() already-loaded likedIds
+      const likedQ = likedIds.size > 0
         ? supabase
             .from('locations')
             .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
             .in('id', Array.from(likedIds))
-        : Promise.resolve({ data: [], error: null }),
-      supabase
-        .from('profiles')
-        .select('username, avatar_url')
-        .eq('id', user.id)
-        .single(),
-    ]).then(([s, l, p]) => {
-      if (s.data) setSubmitted(s.data as LocationWithSubmitter[]);
-      if (l.data) setLiked(l.data as LocationWithSubmitter[]);
-      if (p.data) setProfile(p.data);
-      setLoading(false);
-    });
-  }, [user, likedIds]);
+        : Promise.resolve({ data: [], error: null });
 
-  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
+      Promise.all([submittedQ, likedQ, profileQ]).then(([s, l, p]) => {
+        if (s.data) setSubmitted(s.data as LocationWithSubmitter[]);
+        if (l.data) setLiked(l.data as LocationWithSubmitter[]);
+        if (p.data) setProfile(p.data);
+        setLoading(false);
+      });
+    } else {
+      // Public profile: fetch liked location IDs from likes table
+      supabase
+        .from('likes')
+        .select('location_id')
+        .eq('user_id', profileUserId)
+        .then(async ({ data: likeRows }) => {
+          const ids = likeRows?.map((r) => r.location_id) ?? [];
+          const likedQ = ids.length > 0
+            ? supabase
+                .from('locations')
+                .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
+                .in('id', ids)
+            : Promise.resolve({ data: [], error: null });
+
+          const [s, l, p] = await Promise.all([submittedQ, likedQ, profileQ]);
+          if (s.data) setSubmitted(s.data as LocationWithSubmitter[]);
+          if (l.data) setLiked(l.data as LocationWithSubmitter[]);
+          if (p.data) setProfile(p.data);
+          setLoading(false);
+        });
+    }
+  }, [profileUserId, isOwnProfile, likedIds, user]);
+
+  // ── Display values ──
+  const profileAvatarUrl = profile?.avatar_url;
+  const avatarUrl = isOwnProfile
+    ? (profileAvatarUrl || user?.user_metadata?.avatar_url)
+    : (profileAvatarUrl || undefined);
   const googleName = user?.user_metadata?.full_name || user?.user_metadata?.name || 'Scout';
   const displayName = profile?.username || googleName;
 
@@ -73,9 +111,9 @@ export default function ProfilePage() {
     const path = `avatars/${user.id}-${Date.now()}`;
     const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
     await supabase.storage.from('location-photos').upload(path, file);
-    const avatarUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${path}`;
-    await supabase.from('profiles').upsert({ id: user.id, avatar_url: avatarUrl }, { onConflict: 'id' });
-    setProfile(prev => prev ? { ...prev, avatar_url: avatarUrl } : { username: null, avatar_url: avatarUrl });
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${path}`;
+    await supabase.from('profiles').upsert({ id: user.id, avatar_url: url }, { onConflict: 'id' });
+    setProfile(prev => prev ? { ...prev, avatar_url: url } : { username: null, avatar_url: url });
     setUploadingAvatar(false);
     setCropFile(null);
   };
@@ -101,27 +139,35 @@ export default function ProfilePage() {
     </div>
   );
 
-  const displayNameEl = editingName ? (
-    <input
-      type="text"
-      value={nameValue}
-      onChange={(e) => setNameValue(e.target.value)}
-      onBlur={handleSaveName}
-      onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
-      className="font-display font-bold text-[22px] lg:text-[26px] text-ink bg-surface border border-accent rounded-card px-3 py-1 outline-none w-full max-w-[260px] text-center lg:text-left"
-      autoFocus
-    />
+  // ── Display name (editable only on own profile) ──
+  const displayNameEl = isOwnProfile ? (
+    editingName ? (
+      <input
+        type="text"
+        value={nameValue}
+        onChange={(e) => setNameValue(e.target.value)}
+        onBlur={handleSaveName}
+        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
+        className="font-display font-bold text-[22px] lg:text-[26px] text-ink bg-surface border border-accent rounded-card px-3 py-1 outline-none w-full max-w-[260px] text-center lg:text-left"
+        autoFocus
+      />
+    ) : (
+      <h1
+        className="font-display font-bold text-[22px] lg:text-[26px] text-ink cursor-pointer hover:text-accent transition-colors"
+        onClick={() => { setNameValue(displayName); setEditingName(true); }}
+        title="Click to edit"
+      >
+        {displayName}
+      </h1>
+    )
   ) : (
-    <h1
-      className="font-display font-bold text-[22px] lg:text-[26px] text-ink cursor-pointer hover:text-accent transition-colors"
-      onClick={() => { setNameValue(displayName); setEditingName(true); }}
-      title="Click to edit"
-    >
+    <h1 className="font-display font-bold text-[22px] lg:text-[26px] text-ink">
       {displayName}
     </h1>
   );
 
-  const avatarEl = (
+  // ── Avatar (uploadable only on own profile) ──
+  const avatarEl = isOwnProfile ? (
     <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
       {avatarUrl ? (
         <img src={avatarUrl} alt="" className={`w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-full bg-surface ring-2 ring-chip-border object-cover transition-opacity ${uploadingAvatar ? 'opacity-50' : 'group-hover:opacity-80'}`} />
@@ -139,8 +185,17 @@ export default function ProfilePage() {
         )}
       </div>
     </div>
+  ) : (
+    <div>
+      {avatarUrl ? (
+        <img src={avatarUrl} alt="" className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-full bg-surface ring-2 ring-chip-border object-cover" />
+      ) : (
+        <div className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-full bg-surface ring-2 ring-chip-border" />
+      )}
+    </div>
   );
 
+  // ── Profile header ──
   const profileHeader = (
     <div className="lg:sticky lg:top-10 lg:self-start lg:space-y-5">
       <div className="flex flex-col items-center gap-3 mb-2 lg:items-start">
@@ -148,9 +203,11 @@ export default function ProfilePage() {
         {displayNameEl}
       </div>
       {stats}
-      <button onClick={signOut} className="hidden lg:inline-flex text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 active:scale-[.97] transition-transform duration-100 mt-4">
-        Sign out
-      </button>
+      {isOwnProfile && (
+        <button onClick={signOut} className="hidden lg:inline-flex text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 active:scale-[.97] transition-transform duration-100 mt-4">
+          Sign out
+        </button>
+      )}
     </div>
   );
 
@@ -183,9 +240,11 @@ export default function ProfilePage() {
     submitted.length === 0 ? (
       <div className="text-center py-12 text-ink-mute">
         <p className="text-lg mb-2">No spots submitted yet</p>
-        <button onClick={() => navigate('/submit')} className="text-sm bg-ink text-bg px-5 py-2.5 rounded-card font-semibold active:scale-[.97] transition-transform duration-100">
-          Submit your first spot
-        </button>
+        {isOwnProfile && (
+          <button onClick={() => navigate('/submit')} className="text-sm bg-ink text-bg px-5 py-2.5 rounded-card font-semibold active:scale-[.97] transition-transform duration-100">
+            Submit your first spot
+          </button>
+        )}
       </div>
     ) : isDesktop ? (
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-5">
@@ -220,9 +279,11 @@ export default function ProfilePage() {
   ) : liked.length === 0 ? (
     <div className="text-center py-12 text-ink-mute">
       <p className="text-lg mb-2">No liked spots yet</p>
-      <button onClick={() => navigate('/')} className="text-sm text-accent underline">
-        Browse spots
-      </button>
+      {isOwnProfile && (
+        <button onClick={() => navigate('/')} className="text-sm text-accent underline">
+          Browse spots
+        </button>
+      )}
     </div>
   ) : isDesktop ? (
     <div className="grid grid-cols-2 xl:grid-cols-3 gap-5">
@@ -268,21 +329,25 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-        <button onClick={signOut} className="lg:hidden text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 mt-4 active:scale-[.97] transition-transform duration-100">
-          Sign out
-        </button>
-        <input
-          ref={avatarInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) setCropFile(file);
-            e.target.value = '';
-          }}
-        />
-        {cropFile ? <AvatarCropModal file={cropFile} onSave={(blob) => { handleAvatarUpload(blob); }} onCancel={() => setCropFile(null)} /> : null}
+        {isOwnProfile && (
+          <>
+            <button onClick={signOut} className="lg:hidden text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 mt-4 active:scale-[.97] transition-transform duration-100">
+              Sign out
+            </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setCropFile(file);
+                e.target.value = '';
+              }}
+            />
+            {cropFile && <AvatarCropModal file={cropFile} onSave={(blob) => { handleAvatarUpload(blob); }} onCancel={() => setCropFile(null)} />}
+          </>
+        )}
       </div>
     );
   }
@@ -304,25 +369,29 @@ export default function ProfilePage() {
           <p className="text-[10px] uppercase tracking-[.08em] text-ink-mute font-mono mt-0.5">Liked</p>
         </div>
       </div>
-      <button onClick={signOut} className="text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 mt-4 active:scale-[.97] transition-transform duration-100">
-        Sign out
-      </button>
+      {isOwnProfile && (
+        <>
+          <button onClick={signOut} className="text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 mt-4 active:scale-[.97] transition-transform duration-100">
+            Sign out
+          </button>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleAvatarUpload(file);
+              e.target.value = '';
+            }}
+          />
+          {cropFile && <AvatarCropModal file={cropFile} onSave={(blob) => { handleAvatarUpload(blob); }} onCancel={() => setCropFile(null)} />}
+        </>
+      )}
       {tabs}
       <div className="mt-4">
         {content}
       </div>
-      <input
-        ref={avatarInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleAvatarUpload(file);
-          e.target.value = '';
-        }}
-      />
-      {cropFile ? <AvatarCropModal file={cropFile} onSave={(blob) => { handleAvatarUpload(blob); }} onCancel={() => setCropFile(null)} /> : null}
     </div>
   );
 }

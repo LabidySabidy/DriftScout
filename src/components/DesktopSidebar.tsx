@@ -168,7 +168,7 @@ export default function DesktopSidebar({
           <p className="text-[10px] uppercase tracking-[.08em] text-ink-dim font-mono px-2 mb-1.5">Top Scouts</p>
           <div className="space-y-0.5">
             {leaderboard.slice(0, 5).map((entry, i) => (
-              <div key={entry.submitter.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface transition-colors">
+              <div key={entry.submitter.id} onClick={() => navigate(`/profile/${entry.submitter.id}`)} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface transition-colors cursor-pointer active:scale-[.98]">
                 <span className="text-[10px] font-mono text-ink-dim w-4 shrink-0">
                   {i === 0 ? '👑' : i + 1}
                 </span>

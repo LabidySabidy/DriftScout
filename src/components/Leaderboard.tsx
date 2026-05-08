@@ -1,7 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useFollows } from '../hooks/useFollows';
 
 export default function Leaderboard() {
+  const navigate = useNavigate();
   const { entries, loading } = useLeaderboard();
   const { following, toggleFollow } = useFollows();
 
@@ -29,7 +31,8 @@ export default function Leaderboard() {
         {entries.map((entry, i) => (
           <div
             key={entry.submitter.id}
-            className="flex items-center gap-3 py-2 px-3 rounded-card hover:bg-surface transition-colors"
+            onClick={() => navigate(`/profile/${entry.submitter.id}`)}
+            className="flex items-center gap-3 py-2 px-3 rounded-card hover:bg-surface transition-colors cursor-pointer active:scale-[.98]"
           >
             <span className="text-sm font-mono text-ink-mute w-5 shrink-0">
               {i < 3 ? crowns[i] : i + 1}
