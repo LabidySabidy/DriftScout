@@ -17,15 +17,19 @@ export default function AppShell() {
   const { user } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
   const [profileRole, setProfileRole] = useState<string | null>(null);
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('role').eq('id', user.id).single().then(({ data }) => {
-      if (data) setProfileRole(data.role);
+    supabase.from('profiles').select('role, avatar_url').eq('id', user.id).single().then(({ data }) => {
+      if (data) {
+        setProfileRole(data.role);
+        setProfileAvatar(data.avatar_url);
+      }
     });
-  }, [user]);
+  }, [user, pathname]);
 
-  const avatarUrl = user?.user_metadata?.avatar_url;
+  const avatarUrl = profileAvatar || user?.user_metadata?.avatar_url;
 
   const hideTabBar = FULL_SCREEN_PATHS.some((p) => pathname.startsWith(p));
 
