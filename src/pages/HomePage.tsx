@@ -62,7 +62,7 @@ export default function HomePage() {
         {!isDesktop && (
           <div className="flex items-center gap-3">
             <button onClick={() => setShowBugModal(true)} className="relative p-1">
-              <img src="/bug-report.png" alt="Bug" className="w-5 h-5 opacity-70" />
+              <img src="/bug-report.png" alt="Bug" className="w-5 h-5 invert" />
             </button>
             <button onClick={() => navigate('/notifications')} className="relative p-1">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">

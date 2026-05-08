@@ -214,7 +214,7 @@ export default function DesktopSidebar({
         onClick={() => setShowBugModal(true)}
         className="flex items-center gap-3 p-2 rounded-card hover:bg-surface cursor-pointer transition-colors text-ink-mute hover:text-ink"
       >
-        <img src="/bug-report.png" alt="" className="w-5 h-5 opacity-60" />
+        <img src="/bug-report.png" alt="" className="w-5 h-5 invert opacity-60" />
         <span className="text-[13px] font-medium">Report a Bug</span>
       </button>
 
