@@ -1,9 +1,27 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 export default function InviteRequiredPage() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Re-check profile on mount and when user changes —
+  // if admin promoted the user, immediately redirect out
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data && data.role !== 'pending') {
+          navigate('/', { replace: true });
+        }
+      });
+  }, [user, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
