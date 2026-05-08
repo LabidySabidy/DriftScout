@@ -100,10 +100,11 @@ export default function DesktopSidebar({
     <aside className="w-[220px] shrink-0 h-dvh sticky top-0 bg-bg border-r border-tab-border flex flex-col p-4 gap-1 z-30">
       {/* Logo */}
       <div
-        className="px-2 py-3 mb-2 font-display font-bold text-[20px] tracking-tight cursor-pointer"
+        className="px-2 py-3 mb-2 flex items-center gap-2 font-display font-bold text-[20px] tracking-tight cursor-pointer"
         style={{ fontFamily: "'Pacifico', cursive" }}
         onClick={() => navigate('/')}
       >
+        <img src="/logo-icon.png" alt="" className="w-6 h-auto" />
         DriftScout
       </div>
 

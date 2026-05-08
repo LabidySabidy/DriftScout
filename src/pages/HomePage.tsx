@@ -50,7 +50,10 @@ export default function HomePage() {
       {/* Header */}
       <div className="px-4 pt-3 pb-2 flex items-center justify-between lg:px-0 lg:max-w-[680px] lg:mx-auto">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight lg:font-display lg:text-[28px]" style={{ fontFamily: "'Pacifico', cursive" }}>DriftScout</h1>
+          <h1 className="flex items-center gap-2 text-[22px] font-bold tracking-tight lg:font-display lg:text-[28px]" style={{ fontFamily: "'Pacifico', cursive" }}>
+            <img src="/logo-icon.png" alt="" className="w-7 h-auto lg:w-9" />
+            DriftScout
+          </h1>
           {!isDesktop && <span className="text-[9px] text-ink-mute">V1.0</span>}
         </div>
         {/* Mobile header buttons */}

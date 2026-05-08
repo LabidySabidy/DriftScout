@@ -26,7 +26,10 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-dvh bg-bg text-ink flex items-center justify-center p-6">
       <div className="w-full max-w-sm lg:max-w-[400px] lg:rounded-card lg:border lg:border-chip-border lg:bg-surface lg:p-10 text-center">
-        <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Pacifico', cursive" }}>DriftScout</h1>
+        <h1 className="flex items-center justify-center gap-2 text-2xl font-bold mb-2" style={{ fontFamily: "'Pacifico', cursive" }}>
+          <img src="/logo-icon.png" alt="" className="w-7 h-auto" />
+          DriftScout
+        </h1>
         <p className="text-ink-mute mb-6">Pick a username for your profile</p>
         <input
           type="text"

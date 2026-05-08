@@ -132,9 +132,10 @@ export default function LoginPage() {
       <div className="relative z-10 text-center w-full max-w-md px-6 py-12">
         {/* Logo */}
         <h1
-          className="text-[42px] font-bold mb-3 text-white drop-shadow-lg"
+          className="flex items-center justify-center gap-3 text-[42px] font-bold mb-3 text-white drop-shadow-lg"
           style={{ fontFamily: "'Pacifico', cursive" }}
         >
+          <img src="/logo-icon.png" alt="" className="w-10 h-auto" />
           DriftScout
         </h1>
 
