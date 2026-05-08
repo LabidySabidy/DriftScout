@@ -71,16 +71,21 @@ function CodeRow({ code }: { code: InviteCode }) {
     <div
       onClick={code.status === 'active' ? handleCopy : undefined}
       className={`flex items-center gap-2 px-2 py-1.5 rounded transition-colors group ${code.status === 'active' ? 'hover:bg-surface/50 cursor-pointer active:scale-[.98]' : 'hover:bg-surface/50'}`}
-      title={code.status === 'active' ? 'Click to copy invite link' : undefined}
+      title={code.status === 'active' ? 'Tap to copy invite link' : undefined}
     >
-      <code className="text-[11px] font-mono text-ink-mute flex-1 truncate select-all">
+      <code className="text-[12px] font-mono text-ink-mute flex-1 truncate select-all">
         {code.code}
       </code>
-      <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap ${badge.cls}`}>
+      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap ${badge.cls}`}>
         {badge.text}
       </span>
+      {code.status === 'active' && !copied && (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-ink-dim shrink-0">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      )}
       {copied && (
-        <span className="text-[9px] font-mono text-accent shrink-0">Copied!</span>
+        <span className="text-[10px] font-mono text-accent shrink-0 animate-pulse">Copied!</span>
       )}
     </div>
   );
@@ -138,11 +143,14 @@ export function InviteCodePanelInner({ userId }: { userId: string }) {
       ) : codes.length === 0 ? (
         <p className="text-[11px] text-ink-dim px-2 py-1">No invites yet</p>
       ) : (
-        <div className="space-y-0.5">
-          {codes.map((code) => (
-            <CodeRow key={code.id} code={code} />
-          ))}
-        </div>
+        <>
+          <p className="text-[9px] text-ink-dim font-mono px-2 mb-1">Tap a code to copy invite link</p>
+          <div className="space-y-0.5">
+            {codes.map((code) => (
+              <CodeRow key={code.id} code={code} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
