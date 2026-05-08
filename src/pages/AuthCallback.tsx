@@ -42,15 +42,17 @@ export default function AuthCallback() {
 
         if (error) {
           console.error('Invite code validation error:', error);
+          // Pass error details so InviteRequiredPage can show them
+          const msg = error.message || String(error);
           await supabase.auth.signOut();
-          if (!cancelled) navigate('/invite-required', { replace: true });
+          if (!cancelled) navigate(`/invite-required?reason=rpc&error=${encodeURIComponent(msg)}`, { replace: true });
           return;
         }
 
         if (result !== 'valid') {
-          // Code was invalid/expired/used — sign out
+          // Code was invalid/expired/used — pass reason to InviteRequiredPage
           await supabase.auth.signOut();
-          if (!cancelled) navigate(`/join?code=${inviteCode}&error=${result}`, { replace: true });
+          if (!cancelled) navigate(`/invite-required?reason=code&code=${encodeURIComponent(inviteCode)}&status=${encodeURIComponent(result as string)}`, { replace: true });
           return;
         }
 
@@ -66,7 +68,7 @@ export default function AuthCallback() {
         if (!profile || profile.role === 'pending') {
           // New sign-up without invite code — boot them
           await supabase.auth.signOut();
-          if (!cancelled) navigate('/invite-required', { replace: true });
+          if (!cancelled) navigate('/invite-required?reason=no_access', { replace: true });
           return;
         }
         // Existing trusted/admin/scout user — allow through

@@ -1,11 +1,16 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 
 export default function InviteRequiredPage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const reason = searchParams.get('reason');
+  const rpcError = searchParams.get('error');
+  const codeStatus = searchParams.get('status');
+  const usedCode = searchParams.get('code');
 
   // Re-check profile on mount and when user changes —
   // if admin promoted the user, immediately redirect out
@@ -55,10 +60,22 @@ export default function InviteRequiredPage() {
           <p className="text-white/90 text-[16px] font-semibold mb-2">
             Access Restricted
           </p>
-          <p className="text-white/60 text-[14px] leading-relaxed max-w-[320px] mx-auto">
-            You need an invite code to access DriftScout. Ask someone in
-            the community to send you an invite link.
-          </p>
+          {reason === 'rpc' && rpcError ? (
+            <div className="mb-3 p-3 rounded bg-red-500/10 border border-red-500/30 text-left">
+              <p className="text-red-400/80 text-[10px] uppercase tracking-[.06em] font-mono mb-1">Validation Error</p>
+              <p className="text-red-300/80 text-[12px] font-mono break-all leading-relaxed">{rpcError}</p>
+            </div>
+          ) : reason === 'code' && usedCode ? (
+            <div className="mb-3 p-3 rounded bg-amber-500/10 border border-amber-500/30 text-left">
+              <p className="text-amber-400/80 text-[10px] uppercase tracking-[.06em] font-mono mb-1">Code {codeStatus}</p>
+              <p className="text-amber-300/80 text-[12px] font-mono break-all">Code: {usedCode}</p>
+            </div>
+          ) : (
+            <p className="text-white/60 text-[14px] leading-relaxed max-w-[320px] mx-auto">
+              You need an invite code to access DriftScout. Ask someone in
+              the community to send you an invite link.
+            </p>
+          )}
         </div>
 
         <button
