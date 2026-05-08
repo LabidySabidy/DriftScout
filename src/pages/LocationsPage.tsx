@@ -1,20 +1,43 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useLocations } from '../hooks/useLocations';
 import { useLikes } from '../hooks/useLikes';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import MapView from '../components/MapView';
 import type { LocationWithSubmitter } from '../types';
 
+const STATE_KEY = 'locations_page_state';
+
+function loadState(): { viewMode: 'map' | 'list'; selectedId: string | null; searchCity: string } | null {
+  try {
+    const raw = sessionStorage.getItem(STATE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return null;
+}
+
+function saveState(state: { viewMode: 'map' | 'list'; selectedId: string | null; searchCity: string }) {
+  try {
+    sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
+  } catch { /* ignore */ }
+}
+
+const restored = loadState();
+
 export default function LocationsPage() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { locations, userCoords, loading } = useLocations();
   const { likedIds, toggleLike } = useLikes();
-  const [searchCity, setSearchCity] = useState('');
+  const [searchCity, setSearchCity] = useState(restored?.searchCity ?? '');
   const [panelOpen, setPanelOpen] = useState(true);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [selectedId, setSelectedId] = useState<string | null>(restored?.selectedId ?? null);
+  const [viewMode, setViewMode] = useState<'map' | 'list'>(restored?.viewMode ?? 'map');
+
+  // Persist state on change
+  useEffect(() => {
+    saveState({ viewMode, selectedId, searchCity });
+  }, [viewMode, selectedId, searchCity]);
 
   const handleSelect = useCallback((loc: LocationWithSubmitter) => {
     setSelectedId(loc.id);
