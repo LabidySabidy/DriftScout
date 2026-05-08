@@ -12,7 +12,6 @@ interface ReportBugModalProps {
 export default function ReportBugModal({ open, onClose }: ReportBugModalProps) {
   const { user } = useAuth();
   const isDesktop = useIsDesktop();
-  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [steps, setSteps] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -20,12 +19,13 @@ export default function ReportBugModal({ open, onClose }: ReportBugModalProps) {
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!user || !title.trim()) return;
+    if (!user || !description.trim()) return;
     setSubmitting(true);
     setError(null);
+    const autoTitle = description.trim().slice(0, 80);
     const { error: err } = await submitBugReport({
       reporter_id: user.id,
-      title: title.trim(),
+      title: autoTitle,
       description: description.trim(),
       steps: steps.trim(),
     });
@@ -36,7 +36,6 @@ export default function ReportBugModal({ open, onClose }: ReportBugModalProps) {
       setDone(true);
       setTimeout(() => {
         onClose();
-        setTitle('');
         setDescription('');
         setSteps('');
         setDone(false);
@@ -78,18 +77,9 @@ export default function ReportBugModal({ open, onClose }: ReportBugModalProps) {
                   <button onClick={onClose} className="text-ink-mute hover:text-ink text-lg leading-none">✕</button>
                 </div>
 
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="What's the issue?"
-                  maxLength={100}
-                  className="bg-bg border border-chip-border rounded-card px-3 py-2.5 text-[14px] text-ink outline-none focus:border-accent placeholder:text-ink-dim"
-                />
-
                 <div>
                   <label className="block text-[10px] uppercase tracking-[.08em] text-ink-dim font-mono mb-1.5">
-                    What happened? What did you expect?
+                    Describe the bug
                   </label>
                   <textarea
                     value={description}
@@ -121,7 +111,7 @@ export default function ReportBugModal({ open, onClose }: ReportBugModalProps) {
 
                 <button
                   onClick={handleSubmit}
-                  disabled={!title.trim() || submitting}
+                  disabled={!description.trim() || submitting}
                   className="w-full h-11 rounded-card bg-accent text-ink font-semibold text-[14px] active:scale-[.98] transition-transform disabled:opacity-40"
                 >
                   {submitting ? 'Submitting...' : 'Submit Bug Report'}
