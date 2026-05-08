@@ -45,12 +45,13 @@ const selectedIcon = createSelectedIcon();
 // ── Recenter (only on initial mount when no pin is selected) ──
 function RecenterMap({ center, skip }: { center: [number, number]; skip: boolean }) {
   const map = useMap();
-  const mounted = useRef(false);
+  const didRun = useRef(false);
   useEffect(() => {
-    if (mounted.current || skip) return;
-    mounted.current = true;
+    if (didRun.current || skip) return;
+    didRun.current = true;
     map.setView(center, 11);
-  }, [center, map, skip]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center, map]);
   return null;
 }
 
