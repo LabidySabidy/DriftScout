@@ -60,6 +60,8 @@ export default function AppShell() {
                   onClick={() => {
                     if (active && tab.path === '/') {
                       window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else if (active && tab.path === '/locations') {
+                      window.dispatchEvent(new CustomEvent('focus-locations-search'));
                     } else {
                       navigate(tab.path);
                     }

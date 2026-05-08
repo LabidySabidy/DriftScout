@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useLocations } from '../hooks/useLocations';
 import { useLikes } from '../hooks/useLikes';
 import { useIsDesktop } from '../hooks/useIsDesktop';
@@ -31,6 +31,16 @@ export default function LocationsPage() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(() => loadState()?.selectedId ?? null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>(() => loadState()?.viewMode ?? 'map');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Listen for focus event from tab bar tap
+  useEffect(() => {
+    const handler = () => {
+      searchInputRef.current?.focus();
+    };
+    window.addEventListener('focus-locations-search', handler);
+    return () => window.removeEventListener('focus-locations-search', handler);
+  }, []);
 
   // Persist state on change
   useEffect(() => {
@@ -130,6 +140,7 @@ export default function LocationsPage() {
                       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
                     <input
+                      ref={searchInputRef}
                       type="text"
                       value={searchCity}
                       onChange={(e) => setSearchCity(e.target.value)}
@@ -209,6 +220,7 @@ export default function LocationsPage() {
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input
+          ref={searchInputRef}
           type="text"
           value={searchCity}
           onChange={(e) => setSearchCity(e.target.value)}
