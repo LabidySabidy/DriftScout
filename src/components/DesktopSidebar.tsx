@@ -158,19 +158,39 @@ export default function DesktopSidebar({
         )}
       </div>
 
-      {/* Bugs — admin only */}
+      {/* Admin section */}
       {profileRole === 'admin' && (
-        <button
-          onClick={() => navigate('/admin/bugs')}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-card text-[14px] transition-colors active:scale-[.97] mt-1 ${
-            currentPath.startsWith('/admin/bugs')
-              ? 'text-ink bg-surface relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:bg-accent before:rounded-r'
-              : 'text-ink-mute hover:bg-surface hover:text-ink'
-          }`}
-        >
-          <img src="/bug-report.png" alt="" className="w-4 h-4 invert opacity-70" />
-          <span>Bugs</span>
-        </button>
+        <>
+          <div className="px-2 mt-2 mb-0.5">
+            <p className="text-[10px] uppercase tracking-[.08em] text-ink-dim font-mono">Admin</p>
+          </div>
+
+          <button
+            onClick={() => navigate('/admin/bugs')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-card text-[14px] transition-colors active:scale-[.97] ${
+              currentPath.startsWith('/admin/bugs')
+                ? 'text-ink bg-surface relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:bg-accent before:rounded-r'
+                : 'text-ink-mute hover:bg-surface hover:text-ink'
+            }`}
+          >
+            <img src="/bug-report.png" alt="" className="w-4 h-4 invert opacity-70" />
+            <span>Bugs</span>
+          </button>
+
+          <button
+            onClick={() => navigate('/admin/users')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-card text-[14px] transition-colors active:scale-[.97] ${
+              currentPath.startsWith('/admin/users')
+                ? 'text-ink bg-surface relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:bg-accent before:rounded-r'
+                : 'text-ink-mute hover:bg-surface hover:text-ink'
+            }`}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Users</span>
+          </button>
+        </>
       )}
 
       {/* Submit a Spot — prominent CTA */}
