@@ -4,7 +4,6 @@ import { useLocations } from '../hooks/useLocations';
 import { useLikes } from '../hooks/useLikes';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import MapView from '../components/MapView';
-import LocationCard from '../components/LocationCard';
 import type { LocationWithSubmitter } from '../types';
 
 export default function LocationsPage() {
@@ -239,15 +238,28 @@ export default function LocationsPage() {
             ) : filtered.length === 0 ? (
               <div className="text-center py-12 text-ink-mute"><p className="text-lg mb-2">No spots found</p></div>
             ) : (
-              filtered.map((loc) => (
-                <LocationCard
-                  key={loc.id}
-                  location={loc}
-                  isLiked={likedIds.has(loc.id)}
-                  onToggleLike={() => toggleLike(loc.id)}
-                  onClick={() => navigate(`/location/${loc.id}`)}
-                />
-              ))
+              <div className="space-y-1">
+                {filtered.map((loc) => (
+                  <div
+                    key={loc.id}
+                    onClick={() => navigate(`/location/${loc.id}`)}
+                    className="flex items-center gap-3 p-2 rounded-card cursor-pointer active:scale-[.98] transition-transform duration-100 hover:bg-surface"
+                  >
+                    {loc.photos?.[0]?.storage_path ? (
+                      <img src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/location-photos/${loc.photos[0].storage_path}`} alt="" className="w-12 h-12 rounded object-cover bg-surface shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded bg-surface shrink-0" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-semibold text-ink truncate">{loc.name}</p>
+                      <p className="text-[11px] font-mono text-ink-mute">{loc.city}{loc.distance !== undefined ? ` · ${loc.distance} mi` : ''}</p>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); toggleLike(loc.id); }} className={`p-1 ${likedIds.has(loc.id) ? 'text-danger' : 'text-ink-dim'}`}>
+                      {likedIds.has(loc.id) ? '❤️' : '🤍'}
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </>
