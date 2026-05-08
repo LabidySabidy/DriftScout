@@ -11,12 +11,14 @@ const typeLabels: Record<string, string> = {
 interface NotificationsDropdownProps {
   notifications: Notification[];
   onMarkAllRead: () => void;
+  onMarkOneRead: (id: string) => void;
   onClose: () => void;
 }
 
 export default function NotificationsDropdown({
   notifications,
   onMarkAllRead,
+  onMarkOneRead,
   onClose,
 }: NotificationsDropdownProps) {
   const navigate = useNavigate();
@@ -51,6 +53,7 @@ export default function NotificationsDropdown({
                 onClick={() => {
                   if (n.location_id) {
                     navigate(`/location/${n.location_id}`);
+                    onMarkOneRead(n.id);
                     onClose();
                   }
                 }}

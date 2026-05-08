@@ -44,5 +44,14 @@ export function useNotifications() {
     setUnreadCount(0);
   };
 
-  return { notifications, unreadCount, loading, markAllRead };
+  const markOneRead = useCallback(async (id: string) => {
+    if (!user) return;
+    await supabase.from('notifications').update({ read: true }).eq('id', id).eq('user_id', user.id);
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+  }, [user]);
+
+  return { notifications, unreadCount, loading, markAllRead, markOneRead };
 }

@@ -12,7 +12,7 @@ const typeLabels: Record<string, string> = {
 export default function NotificationsPage() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
-  const { notifications, loading, markAllRead } = useNotifications();
+  const { notifications, loading, markAllRead, markOneRead } = useNotifications();
 
   const listContent = loading ? (
     <div className="space-y-2">
@@ -30,7 +30,7 @@ export default function NotificationsPage() {
       {notifications.map((n) => (
         <div
           key={n.id}
-          onClick={() => n.location_id && navigate(`/location/${n.location_id}`)}
+          onClick={() => { if (n.location_id) { navigate(`/location/${n.location_id}`); markOneRead(n.id); } }}
           className={`flex items-start gap-3 px-4 py-3.5 cursor-pointer hover:bg-surface transition-colors ${!n.read ? 'bg-accent/5' : ''}`}
         >
           {n.actor?.avatar_url && (

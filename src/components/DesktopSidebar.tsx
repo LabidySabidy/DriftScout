@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useNotifications } from '../hooks/useNotifications';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { supabase } from '../lib/supabase';
 import NotificationsDropdown from '../pages/NotificationsDropdown';
+import type { Notification } from '../hooks/useNotifications';
 
 interface DesktopSidebarProps {
   currentPath: string;
   unreadCount: number;
+  notifications: Notification[];
+  markAllRead: () => void;
+  markOneRead: (id: string) => void;
   showNotifs: boolean;
   onToggleNotifs: () => void;
   onCloseNotifs: () => void;
@@ -17,13 +20,15 @@ interface DesktopSidebarProps {
 export default function DesktopSidebar({
   currentPath,
   unreadCount,
+  notifications,
+  markAllRead,
+  markOneRead,
   showNotifs,
   onToggleNotifs,
   onCloseNotifs,
 }: DesktopSidebarProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { notifications, markAllRead } = useNotifications();
   const { entries: leaderboard } = useLeaderboard();
 
   const navItems = [
@@ -86,7 +91,7 @@ export default function DesktopSidebar({
           setProfileAvatar(data.avatar_url);
         }
       });
-  }, [user]);
+  }, [user, currentPath]);
 
   const avatarUrl = profileAvatar || user?.user_metadata?.avatar_url;
   const displayName = profileName || user?.user_metadata?.full_name || user?.user_metadata?.name || 'Scout';
@@ -154,6 +159,7 @@ export default function DesktopSidebar({
           <NotificationsDropdown
             notifications={notifications}
             onMarkAllRead={markAllRead}
+            onMarkOneRead={markOneRead}
             onClose={onCloseNotifs}
           />
         )}

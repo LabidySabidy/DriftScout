@@ -12,7 +12,7 @@ export default function AppShell() {
   const isDesktop = useIsDesktop();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { unreadCount } = useNotifications();
+  const { unreadCount, notifications, markAllRead, markOneRead } = useNotifications();
   const { user } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
 
@@ -91,6 +91,9 @@ export default function AppShell() {
       <DesktopSidebar
         currentPath={pathname}
         unreadCount={unreadCount}
+        notifications={notifications}
+        markAllRead={markAllRead}
+        markOneRead={markOneRead}
         showNotifs={showNotifs}
         onToggleNotifs={() => setShowNotifs((v) => !v)}
         onCloseNotifs={() => setShowNotifs(false)}
