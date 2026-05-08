@@ -55,7 +55,7 @@ export default function HomePage() {
           <h1 className="flex items-center gap-2 text-[22px] font-bold tracking-tight lg:font-display lg:text-[28px]" style={{ fontFamily: "'Pacifico', cursive" }}>
             <img src="/logo-icon.png" alt="" className="w-8 h-auto lg:w-10" />
             DriftScout
-            {!isDesktop && <span className="text-[11px] text-ink-mute font-sans font-normal tracking-normal ml-1">v1.0</span>}
+            <span className="text-[11px] text-ink-mute font-sans font-normal tracking-normal ml-1">v1.0</span>
           </h1>
         </div>
         {/* Mobile header buttons */}
@@ -133,6 +133,15 @@ export default function HomePage() {
         >
           Refresh
         </button>
+        {isDesktop && (
+          <button
+            onClick={() => setShowBugModal(true)}
+            className="bg-surface rounded-card px-3 py-2.5 flex items-center active:scale-[.97] transition-transform duration-100"
+            title="Report a Bug"
+          >
+            <img src="/bug-report.png" alt="Bug" className="w-4 h-4 invert opacity-60" />
+          </button>
+        )}
       </div>
 
       {/* Content: feed */}

@@ -4,7 +4,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { supabase } from '../lib/supabase';
 import NotificationsDropdown from '../pages/NotificationsDropdown';
-import ReportBugModal from './ReportBugModal';
 import type { Notification } from '../hooks/useNotifications';
 
 interface DesktopSidebarProps {
@@ -79,7 +78,6 @@ export default function DesktopSidebar({
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [profileRole, setProfileRole] = useState<string | null>(null);
-  const [showBugModal, setShowBugModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -110,6 +108,7 @@ export default function DesktopSidebar({
       >
         <img src="/logo-icon.png" alt="" className="w-7 h-auto" />
         DriftScout
+        <span className="text-[11px] text-ink-mute font-sans font-normal tracking-normal ml-1">v1.0</span>
       </div>
 
       {/* Nav items */}
@@ -130,17 +129,6 @@ export default function DesktopSidebar({
           </button>
         );
       })}
-
-      {/* Submit a Spot — prominent CTA */}
-      <button
-        onClick={() => navigate('/submit')}
-        className="flex items-center gap-3 px-3 py-2.5 rounded-card text-[14px] text-ink bg-accent hover:bg-accent-hi transition-colors active:scale-[.97] font-semibold mt-2"
-      >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        <span>Submit a Spot</span>
-      </button>
 
       {/* Notification bell */}
       <div className="relative mt-1">
@@ -185,6 +173,17 @@ export default function DesktopSidebar({
         </button>
       )}
 
+      {/* Submit a Spot — prominent CTA */}
+      <button
+        onClick={() => navigate('/submit')}
+        className="flex items-center gap-3 px-3 py-2.5 rounded-card text-[14px] text-ink bg-accent hover:bg-accent-hi transition-colors active:scale-[.97] font-semibold mt-2"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>Submit a Spot</span>
+      </button>
+
       {/* Spacer */}
       <div className="flex-1" />
 
@@ -222,16 +221,6 @@ export default function DesktopSidebar({
         <span className="text-[13px] font-medium text-ink truncate">{displayName}</span>
       </button>
 
-      {/* Bug report */}
-      <button
-        onClick={() => setShowBugModal(true)}
-        className="flex items-center gap-3 p-2 rounded-card hover:bg-surface cursor-pointer transition-colors text-ink-mute hover:text-ink"
-      >
-        <img src="/bug-report.png" alt="" className="w-5 h-5 invert opacity-60" />
-        <span className="text-[13px] font-medium">Report a Bug</span>
-      </button>
-
-      <ReportBugModal open={showBugModal} onClose={() => setShowBugModal(false)} />
     </aside>
   );
 }
