@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useInviteCodes } from '../hooks/useInviteCodes';
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 import type { InviteCode } from '../types';
 
 function ExpiresIn({ expiresAt }: { expiresAt: string }) {
@@ -25,16 +26,69 @@ function ExpiresIn({ expiresAt }: { expiresAt: string }) {
   return <span>{label}</span>;
 }
 
-function CodeRow({ code }: { code: InviteCode }) {
+export function InviteCodePanelInner({ userId }: { userId: string }) {
+  const [codes, setCodes] = useState<InviteCode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [redemptionCount, setRedemptionCount] = useState(0);
   const [copied, setCopied] = useState(false);
-  const inviteUrl = `${window.location.origin}/join?code=${code.code}`;
+  const [lastError, setLastError] = useState<string | null>(null);
+
+  const fetchCodes = useCallback(() => {
+    if (!userId) return;
+    supabase
+      .from('invite_codes')
+      .select('*')
+      .eq('created_by', userId)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setCodes((data as InviteCode[]) ?? []);
+        setLoading(false);
+      });
+  }, [userId]);
+
+  useEffect(() => {
+    fetchCodes();
+  }, [fetchCodes]);
+
+  const activeCode = codes.find(
+    (c) => c.status === 'active' && new Date(c.expires_at) > new Date(),
+  );
+
+  // Fetch redemption count for the active code
+  useEffect(() => {
+    if (!activeCode) {
+      setRedemptionCount(0);
+      return;
+    }
+    supabase
+      .from('invite_redemptions')
+      .select('id', { count: 'exact', head: true })
+      .eq('code_id', activeCode.id)
+      .then(({ count }) => {
+        setRedemptionCount(count ?? 0);
+      });
+  }, [activeCode]);
+
+  const handleGenerate = async () => {
+    setLastError(null);
+    setGenerating(true);
+    const { data, error } = await supabase.rpc('generate_invite_code');
+    if (!error && data) {
+      await fetchCodes();
+    } else if (error) {
+      setLastError(error.message);
+    }
+    setGenerating(false);
+  };
 
   const handleCopy = async () => {
+    if (!activeCode) return;
+    const inviteUrl = `${window.location.origin}/join?code=${activeCode.code}`;
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(inviteUrl);
       } else {
-        // Fallback for older browsers / non-HTTPS
         const ta = document.createElement('textarea');
         ta.value = inviteUrl;
         ta.style.position = 'fixed';
@@ -47,112 +101,73 @@ function CodeRow({ code }: { code: InviteCode }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard blocked — user can still manually select the code text
+      // Clipboard blocked
     }
   };
 
-  const badge = (() => {
-    switch (code.status) {
-      case 'active':
-        return {
-          text: <ExpiresIn expiresAt={code.expires_at} />,
-          cls: 'bg-green-500/20 text-green-400 border-green-500/30',
-        };
-      case 'used':
-        return { text: 'Used', cls: 'bg-white/10 text-white/40 border-white/10' };
-      case 'expired':
-        return { text: 'Expired', cls: 'bg-red-500/20 text-red-400 border-red-500/30' };
-      case 'burned_by_cap':
-        return { text: 'Burned (cap)', cls: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
-    }
-  })();
-
-  return (
-    <div
-      onClick={code.status === 'active' ? handleCopy : undefined}
-      className={`flex items-center gap-2 px-2 py-1.5 rounded transition-colors group ${code.status === 'active' ? 'hover:bg-surface/50 cursor-pointer active:scale-[.98]' : 'hover:bg-surface/50'}`}
-      title={code.status === 'active' ? 'Tap to copy invite link' : undefined}
-    >
-      <code className="text-[12px] font-mono text-ink-mute flex-1 truncate select-all">
-        {code.code}
-      </code>
-      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap ${badge.cls}`}>
-        {badge.text}
-      </span>
-      {code.status === 'active' && !copied && (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-ink-dim shrink-0">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-      )}
-      {copied && (
-        <span className="text-[10px] font-mono text-accent shrink-0 animate-pulse">Copied!</span>
-      )}
-    </div>
-  );
-}
-
-export function InviteCodePanelInner({ userId }: { userId: string }) {
-  const { codes, loading, generating, generate } = useInviteCodes(userId);
-  const [lastError, setLastError] = useState<string | null>(null);
-
-  const handleGenerate = async () => {
-    setLastError(null);
-    const { error } = await generate();
-    if (error) setLastError(error);
-  };
-
-  // Hide used codes — only show active, expired, and burned
-  const visibleCodes = codes.filter((c) => c.status !== 'used');
-
-  const activeCount = visibleCodes.filter(
-    (c) => c.status === 'active' && new Date(c.expires_at) > new Date(),
-  ).length;
+  if (loading) {
+    return (
+      <div className="px-2 py-2">
+        <div className="w-4 h-4 border border-ink-dim border-t-transparent rounded-full animate-spin mx-auto" />
+      </div>
+    );
+  }
 
   return (
     <div className="px-2">
-      {/* Header */}
-      <div className="flex items-center justify-between px-2 mb-1.5">
-        <p className="text-[10px] uppercase tracking-[.08em] text-ink-dim font-mono">
-          Invites
-        </p>
-        <span className="text-[9px] font-mono text-ink-dim">
-          {activeCount}/3
-        </span>
-      </div>
+      <p className="text-[10px] uppercase tracking-[.08em] text-ink-dim font-mono px-2 mb-1.5">
+        Invite Link
+      </p>
 
-      {/* Generate button */}
-      <button
-        onClick={handleGenerate}
-        disabled={generating || activeCount >= 3}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-card text-[12px] font-mono text-ink-mute border border-chip-border hover:border-accent hover:text-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed active:scale-[.97] mb-2"
-      >
-        {generating ? (
-          <span className="w-3 h-3 border border-ink-mute border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <span>+ Generate Invite</span>
-        )}
-      </button>
+      {activeCode ? (
+        <div className="space-y-2">
+          {/* Code + Copy */}
+          <button
+            onClick={handleCopy}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-card bg-surface border border-chip-border hover:border-accent transition-colors active:scale-[.98] group"
+          >
+            <code className="text-[13px] font-mono text-ink-mute flex-1 text-left select-all">
+              {activeCode.code}
+            </code>
+            {copied ? (
+              <span className="text-[10px] font-mono text-accent shrink-0">Copied!</span>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-ink-dim shrink-0 group-hover:text-ink">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            )}
+          </button>
 
-      {/* Error */}
-      {lastError && (
-        <p className="text-[10px] text-red-400 font-mono px-2 mb-2">{lastError}</p>
-      )}
-
-      {/* Code list */}
-      {loading ? (
-        <div className="px-2 py-2">
-          <div className="w-4 h-4 border border-ink-dim border-t-transparent rounded-full animate-spin mx-auto" />
+          {/* Stats */}
+          <div className="flex items-center justify-between px-2">
+            <span className="text-[10px] font-mono text-ink-dim">
+              {redemptionCount > 0 ? (
+                <>{redemptionCount} {redemptionCount === 1 ? 'person' : 'people'} invited</>
+              ) : (
+                'No one invited yet'
+              )}
+            </span>
+            <span className="text-[10px] font-mono text-ink-dim">
+              <ExpiresIn expiresAt={activeCode.expires_at} />
+            </span>
+          </div>
         </div>
-      ) : visibleCodes.length === 0 ? (
-        <p className="text-[11px] text-ink-dim px-2 py-1">No invites yet</p>
       ) : (
         <>
-          <p className="text-[9px] text-ink-dim font-mono px-2 mb-1">Tap a code to copy invite link</p>
-          <div className="space-y-0.5">
-            {visibleCodes.map((code) => (
-              <CodeRow key={code.id} code={code} />
-            ))}
-          </div>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-card text-[12px] font-mono text-ink-mute border border-chip-border hover:border-accent hover:text-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed active:scale-[.97]"
+          >
+            {generating ? (
+              <span className="w-3 h-3 border border-ink-mute border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <span>+ Generate Invite Link</span>
+            )}
+          </button>
+          {lastError && (
+            <p className="text-[10px] text-red-400 font-mono px-2 mt-1.5">{lastError}</p>
+          )}
         </>
       )}
     </div>
