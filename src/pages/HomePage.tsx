@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLikes } from '../hooks/useLikes';
 import { useNotifications } from '../hooks/useNotifications';
 import { useIsDesktop } from '../hooks/useIsDesktop';
@@ -18,7 +18,6 @@ export default function HomePage() {
   const [locations, setLocations] = useState<LocationWithSubmitter[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState<string | null>(null);
-  const [showFilter, setShowFilter] = useState(false);
   const [showBugModal, setShowBugModal] = useState(false);
 
   const loadLocations = useCallback(async () => {
@@ -35,17 +34,6 @@ export default function HomePage() {
   const filtered = filterTag
     ? locations.filter((loc) => loc.tags?.includes(filterTag))
     : locations;
-
-  // Extract all unique tags from loaded locations, sorted by frequency desc then alphabetically
-  const allTags = useMemo(() => {
-    const counts = new Map<string, number>();
-    locations.forEach((loc) => {
-      loc.tags?.forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1));
-    });
-    return [...counts.entries()]
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([tag]) => tag);
-  }, [locations]);
 
   return (
     <div className="pb-20 lg:pb-0">
@@ -81,65 +69,14 @@ export default function HomePage() {
             </button>
           </div>
         )}
-      </div>
-
-      {/* Search bar */}
-      <div className="px-4 pb-3 flex items-center gap-3 lg:px-0 lg:max-w-[680px] lg:mx-auto">
-        <div className="flex-1 bg-surface rounded-card px-4 py-2.5 flex items-center gap-2 cursor-pointer" onClick={() => navigate('/locations')}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <span className="text-[15px] text-ink-mute">Search city or spot...</span>
-        </div>
-        {allTags.length > 0 && (
-          <div className="relative">
-            <button
-              onClick={() => setShowFilter(!showFilter)}
-              className={`bg-surface rounded-card px-4 py-2.5 text-sm font-medium active:scale-[.97] transition-transform duration-100 ${filterTag ? 'text-accent' : 'text-ink'}`}
-            >
-              {filterTag ? `#${filterTag}` : 'Filter'}
-            </button>
-            {showFilter && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowFilter(false)} />
-                <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-bg border border-chip-border rounded-card shadow-panel py-1 max-h-[60vh] overflow-y-auto overscroll-contain">
-                  <button
-                    onClick={() => { setFilterTag(null); setShowFilter(false); }}
-                    className={`w-full text-left px-3 py-2 text-[13px] hover:bg-surface transition-colors ${!filterTag ? 'text-accent font-semibold' : 'text-ink-mute'}`}
-                  >
-                    All spots
-                  </button>
-                  {allTags.map((tag) => {
-                    const active = filterTag === tag;
-                    return (
-                      <button
-                        key={tag}
-                        onClick={() => { setFilterTag(active ? null : tag); setShowFilter(false); }}
-                        className={`w-full text-left px-3 py-2 text-[13px] hover:bg-surface transition-colors flex items-center justify-between ${active ? 'text-accent font-semibold' : 'text-ink-mute'}`}
-                      >
-                        <span>#{tag}</span>
-                        {active && <span className="text-[10px]">✓</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-        <button
-          onClick={loadLocations}
-          className="bg-surface rounded-card px-4 py-2.5 text-sm font-medium text-ink active:scale-[.97] transition-transform duration-100"
-        >
-          Refresh
-        </button>
+        {/* Desktop bug button */}
         {isDesktop && (
           <button
             onClick={() => setShowBugModal(true)}
-            className="bg-surface rounded-card px-3 py-2.5 flex items-center active:scale-[.97] transition-transform duration-100"
+            className="p-2 rounded-full hover:bg-surface transition-colors"
             title="Report a Bug"
           >
-            <img src="/bug-report.png" alt="Bug" className="w-4 h-4 invert opacity-60" />
+            <img src="/bug-report.png" alt="Bug" className="w-5 h-5 invert opacity-60 hover:opacity-100" />
           </button>
         )}
       </div>
