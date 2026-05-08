@@ -296,7 +296,7 @@ export default function SubmitLocationPage() {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
+          className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 lg:text-[14px] text-[16px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
           placeholder="e.g. Grapevine Mills Back Lot"
           required
         />
@@ -311,7 +311,7 @@ export default function SubmitLocationPage() {
             value={address}
             onChange={(e) => { setAddress(e.target.value); setGeoError(''); }}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleGeocode(); } }}
-            className="flex-1 h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
+            className="flex-1 h-11 rounded-card bg-surface border border-chip-border px-3.5 lg:text-[14px] text-[16px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
             placeholder="e.g. 123 Main St, Dallas, TX"
           />
           <button
@@ -359,7 +359,7 @@ export default function SubmitLocationPage() {
             value={latInput}
             onChange={(e) => handleLatChange(e.target.value)}
             onPaste={handleLatPaste}
-            className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink font-mono focus:outline-none focus:border-accent"
+            className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 lg:text-[14px] text-[16px] text-ink font-mono focus:outline-none focus:border-accent"
             placeholder="Paste coords like (33.02, -96.65)"
           />
         </div>
@@ -369,7 +369,7 @@ export default function SubmitLocationPage() {
             type="text"
             value={lngInput}
             onChange={(e) => handleLngChange(e.target.value)}
-            className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink font-mono focus:outline-none focus:border-accent"
+            className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 lg:text-[14px] text-[16px] text-ink font-mono focus:outline-none focus:border-accent"
           />
         </div>
       </div>
@@ -381,7 +381,7 @@ export default function SubmitLocationPage() {
           type="text"
           value={state}
           onChange={(e) => setState(e.target.value)}
-          className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink focus:outline-none focus:border-accent"
+          className="w-full h-11 rounded-card bg-surface border border-chip-border px-3.5 lg:text-[14px] text-[16px] text-ink focus:outline-none focus:border-accent"
           maxLength={2}
         />
       </div>
@@ -477,7 +477,7 @@ export default function SubmitLocationPage() {
               }
             }}
             placeholder="+ custom"
-            className="h-[30px] w-[100px] rounded-pill border border-dashed border-chip-border bg-transparent px-3 text-[12px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
+            className="h-[30px] w-[100px] rounded-pill border border-dashed border-chip-border bg-transparent px-3 lg:text-[12px] text-[16px] text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent"
           />
         </div>
       </div>
@@ -488,7 +488,7 @@ export default function SubmitLocationPage() {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full min-h-[96px] rounded-card bg-surface border border-chip-border p-3 text-[14px] text-ink resize-none focus:outline-none focus:border-accent"
+          className="w-full min-h-[96px] rounded-card bg-surface border border-chip-border p-3 lg:text-[14px] text-[16px] text-ink resize-none focus:outline-none focus:border-accent"
           rows={3}
           placeholder="Tips about security, best times, surface quality..."
         />

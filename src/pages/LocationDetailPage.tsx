@@ -278,7 +278,7 @@ export default function LocationDetailPage() {
           <select
             value={reportReason}
             onChange={(e) => setReportReason(e.target.value)}
-            className="w-full bg-surface rounded px-3 py-2 text-sm text-ink border border-chip-border"
+            className="w-full bg-surface rounded px-3 py-2 lg:text-sm text-[16px] text-ink border border-chip-border"
           >
             <option value="">Select reason</option>
             <option value="inaccurate">Inaccurate info</option>
@@ -292,7 +292,7 @@ export default function LocationDetailPage() {
             value={reportDetail}
             onChange={(e) => setReportDetail(e.target.value)}
             placeholder="Details (optional)"
-            className="w-full bg-surface rounded px-3 py-2 text-sm text-ink outline-none border border-chip-border focus:border-accent"
+            className="w-full bg-surface rounded px-3 py-2 lg:text-sm text-[16px] text-ink outline-none border border-chip-border focus:border-accent"
           />
           <button
             onClick={() => { submitReport(reportReason, reportDetail); setShowReport(false); }}
@@ -339,7 +339,7 @@ export default function LocationDetailPage() {
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Add a note about this spot..."
-            className="flex-1 h-11 rounded-card bg-surface border border-chip-border px-3.5 text-[14px] text-ink outline-none placeholder:text-ink-dim focus:border-accent"
+            className="flex-1 h-11 rounded-card bg-surface border border-chip-border px-3.5 lg:text-[14px] text-[16px] text-ink outline-none placeholder:text-ink-dim focus:border-accent"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && commentText.trim()) {
                 addComment(commentText);

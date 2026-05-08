@@ -18,7 +18,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
   -- Verify caller is admin
-  IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin') THEN
+  IF NOT EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin') THEN
     RAISE EXCEPTION 'Unauthorized: admin only';
   END IF;
 

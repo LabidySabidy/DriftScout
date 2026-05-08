@@ -87,7 +87,7 @@ export default function ReportBugModal({ open, onClose }: ReportBugModalProps) {
                     placeholder="Describe the bug..."
                     rows={3}
                     maxLength={500}
-                    className="w-full bg-bg border border-chip-border rounded-card px-3 py-2.5 text-[14px] text-ink outline-none focus:border-accent placeholder:text-ink-dim resize-none"
+                    className="w-full bg-bg border border-chip-border rounded-card px-3 py-2.5 lg:text-[14px] text-[16px] text-ink outline-none focus:border-accent placeholder:text-ink-dim resize-none"
                   />
                 </div>
 
