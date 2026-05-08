@@ -83,13 +83,18 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
         </div>
 
         {/* Actions */}
-        <div className="mt-4">
+        <div className="flex gap-2 mt-4">
+          <button
+            className="flex-1 h-11 rounded-card bg-accent text-ink font-semibold text-[14px] active:scale-[.98] transition-transform duration-100"
+          >
+            View details
+          </button>
           <a
             href={`https://www.google.com/maps/dir//${location.latitude},${location.longitude}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="h-11 rounded-card border border-chip-border px-5 w-full inline-flex items-center justify-center gap-2 text-ink-mute active:scale-[.98] transition-transform duration-100"
+            className="h-11 rounded-card border border-chip-border px-5 inline-flex items-center justify-center gap-2 text-ink-mute active:scale-[.98] transition-transform duration-100"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
