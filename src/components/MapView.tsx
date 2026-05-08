@@ -86,16 +86,12 @@ function RecenterMap({ center }: { center: [number, number] }) {
   return null;
 }
 
-// ── Handles fly-to only when user actively clicks a pin (not on mount/restore) ──
+// ── Handles fly-to whenever selectedId changes ──
 function FlyToSelected({ selectedId, locations, onPosition }: { selectedId: string | null | undefined; locations: LocationWithSubmitter[]; onPosition: (pos: { x: number; y: number }) => void }) {
   const map = useMap();
-  const initialId = useRef(selectedId);
-  const prevId = useRef(selectedId);
+  const prevId = useRef<string | null | undefined>(undefined);
   useEffect(() => {
-    // Skip if this is the initial selectedId (from mount/restore) or no change
-    if (!selectedId || selectedId === initialId.current) return;
-    // Only fly when selectedId actually changed from a previous value (user click)
-    if (selectedId === prevId.current) return;
+    if (!selectedId || selectedId === prevId.current) return;
     prevId.current = selectedId;
     const loc = locations.find((l) => l.id === selectedId);
     if (loc) {
@@ -248,7 +244,7 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
 
         <ViewportFilteredMarkers
           locations={locations}
-          selectedId={selected?.id}
+          selectedId={selectedId ?? internalSelected?.id}
           onSelect={handleMarkerClick}
         />
       </MapContainer>
