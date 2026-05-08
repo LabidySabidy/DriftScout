@@ -33,8 +33,8 @@ export default function PinPreviewSheet({ location, onClose }: PinPreviewSheetPr
         onClick={onClose}
       />
 
-      {/* Static panel pinned to bottom */}
-      <div className="fixed inset-x-0 bottom-0 z-[9999] bg-surface/95 backdrop-blur-xl border-t border-chip-border rounded-t-card px-4 pt-4 pb-6 pb-safe shadow-sheet">
+      {/* Static panel pinned above tab bar */}
+      <div className="fixed inset-x-0 bottom-[72px] z-[9999] bg-surface/95 backdrop-blur-xl border-t border-chip-border rounded-t-card rounded-b-card px-4 pt-4 pb-6 shadow-sheet">
         <div className="flex gap-3">
           {/* Photo */}
           {photoUrl ? (
