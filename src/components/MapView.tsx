@@ -65,14 +65,14 @@ function PersistMapPosition() {
   return null;
 }
 
-// ── Restore saved position or recenter on initial mount ──
-function RecenterMap({ center, skip }: { center: [number, number]; skip: boolean }) {
+// ── Restore saved position on every mount, fall back to default center ──
+function RecenterMap({ center }: { center: [number, number] }) {
   const map = useMap();
   const didRun = useRef(false);
   useEffect(() => {
-    if (didRun.current || skip) return;
+    if (didRun.current) return;
     didRun.current = true;
-    // Try to restore saved position first
+    // Always try to restore saved position first
     try {
       const raw = sessionStorage.getItem(MAP_POS_KEY);
       if (raw) {
@@ -242,7 +242,7 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
           url="https://api.maptiler.com/maps/hybrid-v4-dark/256/{z}/{x}/{y}.jpg?key=wT95FNHoOtr68B17GSfk"
           maxZoom={20}
         />
-        <RecenterMap center={center} skip={!!selectedId} />
+        <RecenterMap center={center} />
         <PersistMapPosition />
         <FlyToSelected selectedId={selectedId} locations={locations} onPosition={setPinPosition} />
         <MapClickHandler onMapClick={handleClose} />
