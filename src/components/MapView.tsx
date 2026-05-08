@@ -42,28 +42,62 @@ function createSelectedIcon() {
 const defaultIcon = createDefaultIcon();
 const selectedIcon = createSelectedIcon();
 
-// ── Recenter (only on initial mount when no pin is selected) ──
+const MAP_POS_KEY = 'map_position';
+
+// ── Persist map center + zoom to sessionStorage ──
+function PersistMapPosition() {
+  const map = useMap();
+  useEffect(() => {
+    const save = () => {
+      const c = map.getCenter();
+      const z = map.getZoom();
+      try {
+        sessionStorage.setItem(MAP_POS_KEY, JSON.stringify({ lat: c.lat, lng: c.lng, zoom: z }));
+      } catch { /* ignore */ }
+    };
+    map.on('moveend', save);
+    map.on('zoomend', save);
+    return () => {
+      map.off('moveend', save);
+      map.off('zoomend', save);
+    };
+  }, [map]);
+  return null;
+}
+
+// ── Restore saved position or recenter on initial mount ──
 function RecenterMap({ center, skip }: { center: [number, number]; skip: boolean }) {
   const map = useMap();
   const didRun = useRef(false);
   useEffect(() => {
     if (didRun.current || skip) return;
     didRun.current = true;
-    map.setView(center, 11);
+    // Try to restore saved position first
+    try {
+      const raw = sessionStorage.getItem(MAP_POS_KEY);
+      if (raw) {
+        const { lat, lng, zoom } = JSON.parse(raw);
+        map.setView([lat, lng], zoom, { animate: false });
+        return;
+      }
+    } catch { /* ignore */ }
+    map.setView(center, 11, { animate: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center, map]);
   return null;
 }
 
-// ── Handles fly-to when selectedId changes externally ──
+// ── Handles fly-to when selectedId changes from user interaction ──
 function FlyToSelected({ selectedId, locations, onPosition }: { selectedId: string | null | undefined; locations: LocationWithSubmitter[]; onPosition: (pos: { x: number; y: number }) => void }) {
   const map = useMap();
+  const mounted = useRef(false);
   useEffect(() => {
+    // Skip initial mount — RecenterMap handles that
+    if (!mounted.current) { mounted.current = true; return; }
     if (!selectedId) return;
     const loc = locations.find((l) => l.id === selectedId);
     if (loc) {
       map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });
-      // Compute screen position: pin will be at map center after flyTo
       const containerEl = map.getContainer();
       const rect = containerEl.getBoundingClientRect();
       onPosition({
@@ -206,6 +240,7 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
           maxZoom={20}
         />
         <RecenterMap center={center} skip={!!selectedId} />
+        <PersistMapPosition />
         <FlyToSelected selectedId={selectedId} locations={locations} onPosition={setPinPosition} />
         <MapClickHandler onMapClick={handleClose} />
 
