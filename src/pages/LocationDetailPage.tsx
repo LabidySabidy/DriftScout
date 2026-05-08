@@ -227,7 +227,7 @@ export default function LocationDetailPage() {
             <div className="w-10 h-10 rounded-full bg-surface" />
           )}
           <div>
-            <p className="text-[10px] uppercase tracking-[.08em] text-ink-dim font-mono">Discovered by</p>
+            <p className="text-[10px] uppercase tracking-[.08em] text-ink-mute font-mono">Discovered by</p>
             <p className="text-sm font-medium text-ink">{location.submitter.username}</p>
             <p className="text-xs text-ink-mute">{new Date(location.created_at).toLocaleDateString()}</p>
           </div>
