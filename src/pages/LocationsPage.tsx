@@ -10,7 +10,7 @@ import type { LocationWithSubmitter } from '../types';
 export default function LocationsPage() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
-  const { locations, userCoords, radius, setRadius, loading } = useLocations();
+  const { locations, userCoords, loading } = useLocations();
   const { likedIds, toggleLike } = useLikes();
   const [searchCity, setSearchCity] = useState('');
   const [panelOpen, setPanelOpen] = useState(true);
@@ -117,11 +117,7 @@ export default function LocationsPage() {
                       className="flex-1 bg-transparent text-[14px] text-ink outline-none placeholder:text-ink-dim"
                     />
                   </div>
-                  <p className="text-[12px] font-mono text-ink-mute mt-2 px-1">{filtered.length} spots within {radius} mi</p>
-                  <div className="flex items-center gap-2 mt-1 px-1">
-                    <span className="text-[11px] text-ink-dim font-mono">{radius} mi</span>
-                    <input type="range" min={5} max={100} step={5} value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="flex-1 accent-ink h-1" />
-                  </div>
+                  <p className="text-[12px] font-mono text-ink-mute mt-2 px-1">{filtered.length} spots · sorted by distance</p>
                 </div>
                 <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
                   {loading ? (
@@ -234,10 +230,7 @@ export default function LocationsPage() {
       {/* List view */}
       {viewMode === 'list' && (
         <>
-          <div className="px-4 py-2 flex items-center gap-2 shrink-0">
-            <span className="text-xs text-ink-mute">{radius} mi</span>
-            <input type="range" min={5} max={100} step={5} value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="flex-1 accent-ink h-1" />
-          </div>
+          <p className="px-4 py-2 text-[11px] font-mono text-ink-mute shrink-0">{filtered.length} spots · sorted by distance</p>
           <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-20">
             {loading ? (
               <div className="space-y-6">

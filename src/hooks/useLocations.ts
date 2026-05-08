@@ -1,12 +1,11 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { fetchLocations } from '../lib/locations';
+import { fetchLocationsSorted } from '../lib/locations';
 import type { LocationWithSubmitter } from '../types';
 
 export function useLocations() {
   const [locations, setLocations] = useState<LocationWithSubmitter[]>([]);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
-  const [radius, setRadius] = useState(15);
   const [loading, setLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
   const initRef = useRef(false);
@@ -39,26 +38,24 @@ export function useLocations() {
     if (!userCoords) return;
 
     setLoading(true);
-    fetchLocations(userCoords[0], userCoords[1], radius).then((data) => {
+    fetchLocationsSorted(userCoords[0], userCoords[1]).then((data) => {
       setLocations(data);
       setLoading(false);
     });
-  }, [userCoords, radius]);
+  }, [userCoords]);
 
   const refresh = useCallback(() => {
     if (!userCoords) return;
     setLoading(true);
-    fetchLocations(userCoords[0], userCoords[1], radius).then((data) => {
+    fetchLocationsSorted(userCoords[0], userCoords[1]).then((data) => {
       setLocations(data);
       setLoading(false);
     });
-  }, [userCoords, radius]);
+  }, [userCoords]);
 
   return {
     locations,
     userCoords,
-    radius,
-    setRadius,
     loading,
     geoError,
     refresh,

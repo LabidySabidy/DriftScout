@@ -71,6 +71,50 @@ function FlyToSelected({ selectedId, locations, onPosition }: { selectedId: stri
   return null;
 }
 
+// ── Filters markers to only those within the current map viewport ──
+function ViewportFilteredMarkers({
+  locations,
+  selectedId,
+  onSelect,
+}: {
+  locations: LocationWithSubmitter[];
+  selectedId: string | null | undefined;
+  onSelect: (loc: LocationWithSubmitter, screenPos: { x: number; y: number }) => void;
+}) {
+  const map = useMap();
+  const [visibleLocations, setVisibleLocations] = useState<LocationWithSubmitter[]>([]);
+
+  useEffect(() => {
+    const update = () => {
+      const bounds = map.getBounds();
+      const filtered = locations.filter((loc) =>
+        bounds.contains([loc.latitude, loc.longitude])
+      );
+      setVisibleLocations(filtered);
+    };
+    update();
+    map.on('moveend', update);
+    map.on('zoomend', update);
+    return () => {
+      map.off('moveend', update);
+      map.off('zoomend', update);
+    };
+  }, [map, locations]);
+
+  return (
+    <>
+      {visibleLocations.map((loc) => (
+        <LocationMarker
+          key={loc.id}
+          loc={loc}
+          isSelected={selectedId === loc.id}
+          onClick={onSelect}
+        />
+      ))}
+    </>
+  );
+}
+
 // ── Handles click on empty map space to deselect ──
 function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
   useMapEvents({
@@ -161,14 +205,11 @@ export default function MapView({ locations, center, fullHeight, selectedId, onS
         <FlyToSelected selectedId={selectedId} locations={locations} onPosition={setPinPosition} />
         <MapClickHandler onMapClick={handleClose} />
 
-        {locations.map((loc) => (
-          <LocationMarker
-            key={loc.id}
-            loc={loc}
-            isSelected={selected?.id === loc.id}
-            onClick={handleMarkerClick}
-          />
-        ))}
+        <ViewportFilteredMarkers
+          locations={locations}
+          selectedId={selected?.id}
+          onSelect={handleMarkerClick}
+        />
       </MapContainer>
 
       {/* Pin preview — portaled to document.body to escape overflow-hidden parents */}

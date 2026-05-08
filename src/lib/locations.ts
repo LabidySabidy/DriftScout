@@ -16,6 +16,29 @@ export async function fetchAllLocations(): Promise<LocationWithSubmitter[]> {
   return data as LocationWithSubmitter[];
 }
 
+export async function fetchLocationsSorted(
+  lat: number,
+  lng: number
+): Promise<LocationWithSubmitter[]> {
+  const { data, error } = await supabase
+    .from('locations')
+    .select('*, submitter:profiles!locations_submitter_id_fkey(*), photos:location_photos(*)')
+    .neq('moderation_status', 'rejected')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching locations:', error);
+    return [];
+  }
+
+  return (data as LocationWithSubmitter[])
+    .map((loc) => {
+      const distance = haversineDistance(lat, lng, loc.latitude, loc.longitude);
+      return { ...loc, distance };
+    })
+    .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+}
+
 export async function fetchLocations(
   lat: number,
   lng: number,
