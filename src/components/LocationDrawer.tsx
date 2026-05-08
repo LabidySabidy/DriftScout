@@ -43,7 +43,7 @@ export default function LocationDrawer({ locationId, onClose }: LocationDrawerPr
     <AnimatePresence>
       {/* Backdrop */}
       <motion.div
-        className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]"
+        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
