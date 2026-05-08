@@ -165,12 +165,24 @@ export default function LocationDetailPage() {
   const contentBlock = (
     <div className="px-4 py-4 space-y-5 lg:px-5">
       {/* Title + meta */}
-      <div>
-        <h1 className="font-display font-bold text-[26px] leading-[1.1] tracking-tight text-ink">{location.name}</h1>
-        <p className="text-[12px] text-ink-mute font-mono mt-1">
-          {location.city}, {location.state}
-          {location.distance !== undefined && <> · {location.distance} miles away</>}
-        </p>
+      <div className="flex items-stretch gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display font-bold text-[26px] leading-[1.1] tracking-tight text-ink">{location.name}</h1>
+          <p className="text-[12px] text-ink-mute font-mono mt-1">
+            {location.city}, {location.state}
+            {location.distance !== undefined && <> · {location.distance} miles away</>}
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/locations', { state: { focusPin: location.id } })}
+          className="shrink-0 h-auto rounded-card border border-chip-border px-3 py-2 flex flex-col items-center justify-center gap-1 text-ink-mute hover:border-accent hover:text-accent active:scale-[.97] transition-all duration-100"
+          title="View on map"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span className="text-[9px] font-mono uppercase tracking-[.05em]">Map</span>
+        </button>
       </div>
 
       {/* Badges */}

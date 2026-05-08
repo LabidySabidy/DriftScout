@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useLocations } from '../hooks/useLocations';
 import { useLikes } from '../hooks/useLikes';
@@ -24,12 +24,15 @@ function saveState(state: { viewMode: 'map' | 'list'; selectedId: string | null;
 
 export default function LocationsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const isDesktop = useIsDesktop();
   const { locations, userCoords, loading } = useLocations();
   const { likedIds, toggleLike } = useLikes();
   const [searchCity, setSearchCity] = useState(() => loadState()?.searchCity ?? '');
   const [panelOpen, setPanelOpen] = useState(true);
-  const [selectedId, setSelectedId] = useState<string | null>(() => loadState()?.selectedId ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    () => (location.state as { focusPin?: string } | null)?.focusPin ?? loadState()?.selectedId ?? null
+  );
   const [viewMode, setViewMode] = useState<'map' | 'list'>(() => loadState()?.viewMode ?? 'map');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
