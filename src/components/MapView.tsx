@@ -82,7 +82,6 @@ function RecenterMap({ center }: { center: [number, number] }) {
       }
     } catch { /* ignore */ }
     map.setView(center, 11, { animate: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center, map]);
   return null;
 }
