@@ -42,8 +42,6 @@ export default function LocationDetailPage() {
   const addPhotoRef = useRef<HTMLInputElement>(null);
   const [communityPhotos, setCommunityPhotos] = useState<LocationPhoto[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const [atTop, setAtTop] = useState(true);
 
   // Compute photos early so hooks can reference them
   const photos = location?.photos ?? [];
@@ -463,21 +461,11 @@ export default function LocationDetailPage() {
     );
   }
 
-  // ── Mobile: swipe down to dismiss (from anywhere when at top) ──
+  // ── Mobile: back button dismiss ──
   return (
-    <motion.div
-      className="min-h-dvh bg-bg text-ink flex flex-col"
-      drag={atTop ? 'y' : false}
-      dragConstraints={{ top: 0, bottom: 250 }}
-      dragElastic={0.6}
-      onDragEnd={(_, info) => {
-        if (info.offset.y > 70 || info.velocity.y > 400) {
-          navigate(-1);
-        }
-      }}
-    >
+    <div className="min-h-dvh bg-bg text-ink flex flex-col">
       {lightbox}
-      {/* Sticky header — z-[10000] sits above the lightbox so Back is always reachable */}
+      {/* Sticky header */}
       <div className="sticky top-0 z-[10000] h-12 px-3 flex items-center gap-2 bg-bg/85 backdrop-blur-xl border-b border-tab-border">
         <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 h-10 -ml-2 px-2 rounded-full hover:bg-surface text-ink-mute active:scale-[.97] transition-transform duration-100">
           <span className="grid place-items-center">←</span>
@@ -485,18 +473,10 @@ export default function LocationDetailPage() {
         </button>
       </div>
       {/* Body */}
-      <div
-        ref={bodyRef}
-        className="flex-1 overflow-y-auto overscroll-contain"
-        onScroll={() => {
-          if (bodyRef.current) {
-            setAtTop(bodyRef.current.scrollTop <= 5);
-          }
-        }}
-      >
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         {carousel}
         {contentBlock}
       </div>
-    </motion.div>
+    </div>
   );
 }

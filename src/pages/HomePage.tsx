@@ -61,6 +61,9 @@ export default function HomePage() {
         {/* Mobile header buttons */}
         {!isDesktop && (
           <div className="flex items-center gap-3">
+            <button onClick={() => setShowBugModal(true)} className="relative p-1">
+              <img src="/bug-report.png" alt="Bug" className="w-5 h-5 opacity-70" />
+            </button>
             <button onClick={() => navigate('/notifications')} className="relative p-1">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -170,14 +173,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Report a Bug */}
-          <button
-            onClick={() => setShowBugModal(true)}
-            className="w-full mt-6 py-3 rounded-card border border-chip-border bg-surface/50 text-[13px] text-ink-mute hover:text-ink hover:border-accent/40 active:scale-[.98] transition-all duration-100 flex items-center justify-center gap-2 font-mono"
-          >
-            <span className="text-[15px]">🐛</span>
-            Report a Bug
-          </button>
         </div>
       </div>
 

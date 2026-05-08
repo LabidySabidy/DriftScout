@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { supabase } from '../lib/supabase';
 import NotificationsDropdown from '../pages/NotificationsDropdown';
+import ReportBugModal from './ReportBugModal';
 import type { Notification } from '../hooks/useNotifications';
 
 interface DesktopSidebarProps {
@@ -78,6 +79,7 @@ export default function DesktopSidebar({
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [profileRole, setProfileRole] = useState<string | null>(null);
+  const [showBugModal, setShowBugModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -207,10 +209,19 @@ export default function DesktopSidebar({
         </div>
       )}
 
+      {/* Bug report */}
+      <button
+        onClick={() => setShowBugModal(true)}
+        className="flex items-center gap-3 p-2 rounded-card hover:bg-surface cursor-pointer transition-colors text-ink-mute hover:text-ink"
+      >
+        <img src="/bug-report.png" alt="" className="w-5 h-5 opacity-60" />
+        <span className="text-[13px] font-medium">Report a Bug</span>
+      </button>
+
       {/* User row */}
       <button
         onClick={() => navigate('/profile')}
-        className="mt-auto flex items-center gap-3 p-2 rounded-card hover:bg-surface cursor-pointer transition-colors"
+        className="flex items-center gap-3 p-2 rounded-card hover:bg-surface cursor-pointer transition-colors"
       >
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover bg-surface shrink-0" />
@@ -219,6 +230,8 @@ export default function DesktopSidebar({
         )}
         <span className="text-[13px] font-medium text-ink truncate">{displayName}</span>
       </button>
+
+      <ReportBugModal open={showBugModal} onClose={() => setShowBugModal(false)} />
     </aside>
   );
 }

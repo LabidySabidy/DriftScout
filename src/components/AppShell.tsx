@@ -57,7 +57,13 @@ export default function AppShell() {
               return (
                 <button
                   key={tab.path}
-                  onClick={() => navigate(tab.path)}
+                  onClick={() => {
+                    if (active && tab.path === '/') {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                      navigate(tab.path);
+                    }
+                  }}
                   className={`flex flex-col items-center gap-1 text-[10px] active:scale-[.97] transition-transform duration-100 ${
                     active ? 'text-ink' : 'text-ink-dim'
                   }`}
