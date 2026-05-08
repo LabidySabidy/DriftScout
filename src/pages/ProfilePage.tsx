@@ -128,12 +128,12 @@ export default function ProfilePage() {
   }
 
   const stats = (
-    <div className="flex justify-center gap-8 lg:grid lg:grid-cols-3 lg:gap-3 lg:text-left lg:justify-start">
-      <div className="text-center lg:text-left">
+    <div className="flex justify-center gap-8 lg:grid lg:grid-cols-2 lg:gap-3 lg:justify-center">
+      <div className="text-center">
         <p className="font-display font-bold text-[20px] text-ink">{submitted.length}</p>
         <p className="text-[10px] uppercase tracking-[.08em] text-ink-mute font-mono mt-0.5">Spots</p>
       </div>
-      <div className="text-center lg:text-left">
+      <div className="text-center">
         <p className="font-display font-bold text-[20px] text-ink">{liked.length}</p>
         <p className="text-[10px] uppercase tracking-[.08em] text-ink-mute font-mono mt-0.5">Liked</p>
       </div>
@@ -198,8 +198,8 @@ export default function ProfilePage() {
 
   // ── Profile header ──
   const profileHeader = (
-    <div className="lg:sticky lg:top-10 lg:self-start lg:space-y-5">
-      <div className="flex flex-col items-center gap-3 mb-2 lg:items-start">
+    <div className="lg:sticky lg:top-10 lg:space-y-5">
+      <div className="flex flex-col items-center gap-3 mb-2">
         {avatarEl}
         {displayNameEl}
       </div>
@@ -210,9 +210,11 @@ export default function ProfilePage() {
         </div>
       )}
       {isOwnProfile && (
-        <button onClick={signOut} className="hidden lg:inline-flex text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 active:scale-[.97] transition-transform duration-100 mt-4">
-          Sign out
-        </button>
+        <div className="hidden lg:flex justify-center mt-4">
+          <button onClick={signOut} className="text-xs text-ink-mute hover:text-ink border border-chip-border rounded-pill px-4 py-1.5 active:scale-[.97] transition-transform duration-100">
+            Sign out
+          </button>
+        </div>
       )}
     </div>
   );

@@ -30,9 +30,25 @@ function CodeRow({ code }: { code: InviteCode }) {
   const inviteUrl = `${window.location.origin}/join?code=${code.code}`;
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(inviteUrl);
+      } else {
+        // Fallback for older browsers / non-HTTPS
+        const ta = document.createElement('textarea');
+        ta.value = inviteUrl;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard blocked — user can still manually select the code text
+    }
   };
 
   const badge = (() => {
@@ -52,20 +68,19 @@ function CodeRow({ code }: { code: InviteCode }) {
   })();
 
   return (
-    <div className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface/50 transition-colors group">
+    <div
+      onClick={code.status === 'active' ? handleCopy : undefined}
+      className={`flex items-center gap-2 px-2 py-1.5 rounded transition-colors group ${code.status === 'active' ? 'hover:bg-surface/50 cursor-pointer active:scale-[.98]' : 'hover:bg-surface/50'}`}
+      title={code.status === 'active' ? 'Click to copy invite link' : undefined}
+    >
       <code className="text-[11px] font-mono text-ink-mute flex-1 truncate select-all">
         {code.code}
       </code>
       <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap ${badge.cls}`}>
         {badge.text}
       </span>
-      {code.status === 'active' && (
-        <button
-          onClick={handleCopy}
-          className="text-[10px] font-mono text-ink-dim hover:text-accent opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-        >
-          {copied ? 'Copied!' : 'Copy'}
-        </button>
+      {copied && (
+        <span className="text-[9px] font-mono text-accent shrink-0">Copied!</span>
       )}
     </div>
   );
