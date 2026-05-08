@@ -87,14 +87,17 @@ function RecenterMap({ center, skip }: { center: [number, number]; skip: boolean
   return null;
 }
 
-// ── Handles fly-to when selectedId changes from user interaction ──
+// ── Handles fly-to only when user actively clicks a pin (not on mount/restore) ──
 function FlyToSelected({ selectedId, locations, onPosition }: { selectedId: string | null | undefined; locations: LocationWithSubmitter[]; onPosition: (pos: { x: number; y: number }) => void }) {
   const map = useMap();
-  const mounted = useRef(false);
+  const initialId = useRef(selectedId);
+  const prevId = useRef(selectedId);
   useEffect(() => {
-    // Skip initial mount — RecenterMap handles that
-    if (!mounted.current) { mounted.current = true; return; }
-    if (!selectedId) return;
+    // Skip if this is the initial selectedId (from mount/restore) or no change
+    if (!selectedId || selectedId === initialId.current) return;
+    // Only fly when selectedId actually changed from a previous value (user click)
+    if (selectedId === prevId.current) return;
+    prevId.current = selectedId;
     const loc = locations.find((l) => l.id === selectedId);
     if (loc) {
       map.flyTo([loc.latitude, loc.longitude], Math.max(map.getZoom(), 13), { duration: 0.5 });

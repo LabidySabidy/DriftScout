@@ -180,7 +180,7 @@ export default function DesktopSidebar({
               : 'text-ink-mute hover:bg-surface hover:text-ink'
           }`}
         >
-          <span className="text-[16px]">🐛</span>
+          <img src="/bug-report.png" alt="" className="w-4 h-4 invert opacity-70" />
           <span>Bugs</span>
         </button>
       )}
@@ -209,15 +209,6 @@ export default function DesktopSidebar({
         </div>
       )}
 
-      {/* Bug report */}
-      <button
-        onClick={() => setShowBugModal(true)}
-        className="flex items-center gap-3 p-2 rounded-card hover:bg-surface cursor-pointer transition-colors text-ink-mute hover:text-ink"
-      >
-        <img src="/bug-report.png" alt="" className="w-5 h-5 invert opacity-60" />
-        <span className="text-[13px] font-medium">Report a Bug</span>
-      </button>
-
       {/* User row */}
       <button
         onClick={() => navigate('/profile')}
@@ -229,6 +220,15 @@ export default function DesktopSidebar({
           <div className="w-8 h-8 rounded-full bg-surface shrink-0" />
         )}
         <span className="text-[13px] font-medium text-ink truncate">{displayName}</span>
+      </button>
+
+      {/* Bug report */}
+      <button
+        onClick={() => setShowBugModal(true)}
+        className="flex items-center gap-3 p-2 rounded-card hover:bg-surface cursor-pointer transition-colors text-ink-mute hover:text-ink"
+      >
+        <img src="/bug-report.png" alt="" className="w-5 h-5 invert opacity-60" />
+        <span className="text-[13px] font-medium">Report a Bug</span>
       </button>
 
       <ReportBugModal open={showBugModal} onClose={() => setShowBugModal(false)} />
