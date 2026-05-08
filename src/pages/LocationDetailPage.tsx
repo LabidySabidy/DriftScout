@@ -469,12 +469,12 @@ export default function LocationDetailPage() {
       }}
     >
       {lightbox}
-      {/* Sticky header */}
-      <div className="sticky top-0 z-10 h-12 px-3 flex items-center gap-2 bg-bg/85 backdrop-blur-xl border-b border-tab-border">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 grid place-items-center rounded-full hover:bg-surface text-ink-mute active:scale-[.97] transition-transform duration-100">
-          ←
+      {/* Sticky header — z-[10000] sits above the lightbox so Back is always reachable */}
+      <div className="sticky top-0 z-[10000] h-12 px-3 flex items-center gap-2 bg-bg/85 backdrop-blur-xl border-b border-tab-border">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 h-10 -ml-2 px-2 rounded-full hover:bg-surface text-ink-mute active:scale-[.97] transition-transform duration-100">
+          <span className="grid place-items-center">←</span>
+          <span className="text-[13px] font-mono">Back</span>
         </button>
-        <span className="text-[13px] font-mono text-ink-mute">Back</span>
       </div>
       {/* Body */}
       <div className="flex-1 overflow-y-auto overscroll-contain">

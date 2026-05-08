@@ -333,7 +333,7 @@ export default function SubmitLocationPage() {
           <MapContainer
             center={[lat, lng]}
             zoom={10}
-            scrollWheelZoom={true}
+            scrollWheelZoom={false}
             className="h-full w-full"
           >
             <TileLayer
@@ -514,7 +514,12 @@ export default function SubmitLocationPage() {
                 disabled={submitting || !name.trim()}
                 className="text-[14px] font-semibold text-accent disabled:text-ink-dim active:scale-[.97] transition-transform duration-100"
               >
-                {submitting ? 'Saving...' : saveLabel}
+                {submitting ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </span>
+                ) : saveLabel}
               </button>
             </div>
             <div className="flex-1 overflow-y-auto overscroll-contain p-7">
@@ -533,7 +538,12 @@ export default function SubmitLocationPage() {
                 disabled={submitting || !name.trim()}
                 className="h-11 px-6 rounded-card bg-accent text-ink font-semibold disabled:opacity-40 active:scale-[.97] transition-transform duration-100"
               >
-                {submitting ? submittingLabel : saveLabel}
+                {submitting ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    {submittingLabel}
+                  </span>
+                ) : saveLabel}
               </button>
             </div>
           </div>
@@ -556,7 +566,12 @@ export default function SubmitLocationPage() {
           disabled={submitting || !name.trim()}
           className="text-[14px] font-semibold text-accent disabled:text-ink-dim active:scale-[.97] transition-transform duration-100"
         >
-          {submitting ? 'Saving...' : saveLabel}
+          {submitting ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              Saving...
+            </span>
+          ) : saveLabel}
         </button>
       </div>
       <div className="flex-1 overflow-y-auto overscroll-contain p-4 pb-8">
@@ -567,7 +582,12 @@ export default function SubmitLocationPage() {
           disabled={submitting || !name.trim()}
           className="w-full bg-ink text-bg font-semibold py-3 rounded-card mt-5 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[.97] transition-transform duration-100"
         >
-          {submitting ? submittingLabel : saveLabel}
+          {submitting ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              {submittingLabel}
+            </span>
+          ) : saveLabel}
         </button>
       </div>
     </div>

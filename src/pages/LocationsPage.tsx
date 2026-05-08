@@ -49,11 +49,11 @@ export default function LocationsPage() {
                 <div className="flex items-center gap-2 p-4 pb-2 border-b border-tab-border">
                   <button
                     onClick={() => setSelectedId(null)}
-                    className="w-8 h-8 grid place-items-center rounded-full hover:bg-surface text-ink-mute hover:text-ink"
+                    className="inline-flex items-center gap-1.5 h-8 px-2 rounded-full hover:bg-surface text-ink-mute hover:text-ink"
                   >
-                    ←
+                    <span className="grid place-items-center">←</span>
+                    <span className="text-[13px] font-mono">Back to list</span>
                   </button>
-                  <span className="text-[13px] font-mono text-ink-mute">Back to list</span>
                 </div>
                 <div className="flex-1 overflow-y-auto overscroll-contain">
                   {selectedPhoto && (
