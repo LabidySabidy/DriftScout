@@ -42,6 +42,8 @@ export default function LocationDetailPage() {
   const addPhotoRef = useRef<HTMLInputElement>(null);
   const [communityPhotos, setCommunityPhotos] = useState<LocationPhoto[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [atTop, setAtTop] = useState(true);
 
   // Compute photos early so hooks can reference them
   const photos = location?.photos ?? [];
@@ -461,15 +463,15 @@ export default function LocationDetailPage() {
     );
   }
 
-  // ── Mobile: full-screen page with edge-swipe back ──
+  // ── Mobile: swipe down to dismiss ──
   return (
     <motion.div
       className="min-h-dvh bg-bg text-ink flex flex-col"
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.2}
+      drag={atTop ? 'y' : false}
+      dragConstraints={{ top: 0, bottom: 200 }}
+      dragElastic={0.4}
       onDragEnd={(_, info) => {
-        if (info.offset.x > 80 || info.velocity.x > 500) {
+        if (info.offset.y > 100 || info.velocity.y > 500) {
           navigate(-1);
         }
       }}
@@ -483,7 +485,15 @@ export default function LocationDetailPage() {
         </button>
       </div>
       {/* Body */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      <div
+        ref={bodyRef}
+        className="flex-1 overflow-y-auto overscroll-contain"
+        onScroll={() => {
+          if (bodyRef.current) {
+            setAtTop(bodyRef.current.scrollTop <= 0);
+          }
+        }}
+      >
         {carousel}
         {contentBlock}
       </div>
