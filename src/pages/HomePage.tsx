@@ -53,8 +53,8 @@ export default function HomePage() {
           <h1 className="flex items-center gap-2 text-[22px] font-bold tracking-tight lg:font-display lg:text-[28px]" style={{ fontFamily: "'Pacifico', cursive" }}>
             <img src="/logo-icon.png" alt="" className="w-8 h-auto lg:w-10" />
             DriftScout
+            {!isDesktop && <span className="text-[11px] text-ink-mute font-sans font-normal tracking-normal ml-1">v1.0</span>}
           </h1>
-          {!isDesktop && <span className="text-[9px] text-ink-mute">V1.0</span>}
         </div>
         {/* Mobile header buttons */}
         {!isDesktop && (
