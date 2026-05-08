@@ -25,3 +25,9 @@ dist-ssr
 
 .vercel
 .env*.local
+
+# Raw source images (too large for repo)
+IMG_*.PNG
+IMG_*.JPG
+IMG_*.jpg
+IMG_*.png
