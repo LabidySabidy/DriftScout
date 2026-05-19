@@ -196,7 +196,7 @@ export default function DesktopSidebar({
       {/* Submit a Spot — prominent CTA */}
       <button
         onClick={() => navigate('/submit')}
-        className="flex items-center gap-3 px-3 py-2.5 rounded-card text-[14px] text-ink bg-accent hover:bg-accent-hi transition-colors active:scale-[.97] font-semibold mt-2"
+        className="flex items-center gap-3 px-3 py-2.5 rounded-card text-[14px] text-ink bg-green-500 hover:bg-green-600 transition-colors active:scale-[.97] font-semibold mt-2"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
