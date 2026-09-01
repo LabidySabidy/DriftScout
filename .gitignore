@@ -37,3 +37,6 @@ IMG_*.JPG
 IMG_*.jpg
 IMG_*.png
 vecteezy_*
+
+# Playwright artifacts
+test-results/
