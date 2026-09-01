@@ -24,8 +24,12 @@ dist-ssr
 *.sw?
 
 .vercel
+.env
 .env*.local
 supabase/.temp/
+
+# Pi agent local state (telemetry logs may contain session contents)
+.agent/telemetry*
 
 # Raw source images (too large for repo)
 IMG_*.PNG
