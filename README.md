@@ -1,73 +1,85 @@
-# React + TypeScript + Vite
+# DriftScout
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A community-driven map of drifting practice spots. Drivers discover safe, vetted locations to practice; scouts submit and maintain them.
 
-Currently, two official plugins are available:
+**Live:** https://drift-scout.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What it does
 
-## React Compiler
+DriftScout is a community map of drifting practice spots — drivers share, find, and vet locations. It's a mobile-first web app where the community catalogues parking lots and facilities, with the access details that matter: fee, permission level, and surface.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+**Discovery**
+- Map view (Leaflet) and card feed, with distance and tag filtering
+- Location detail: photos, address, access fee, permission level, tags, submitter notes
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**Community**
+- Google Sign-In (Supabase Auth), gated by single-use invite codes with a role system (admin / trusted scout)
+- Submit spots with photos (client-side compression) and tags
+- Like/save locations, follow scouts, comment on spots
+- Leaderboard of top submitters; photo contributions with voting
+- In-app notifications
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Trust & safety**
+- Admin moderation: user management and a community bug-report channel
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**Platform**
+- Installable PWA, responsive (desktop sidebar ↔ mobile bottom-sheet)
+- Avatar upload with crop
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | React 19 + Vite |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 |
+| Data | Supabase (Postgres, Auth, Storage) |
+| Maps | Leaflet + react-leaflet |
+| Motion | Framer Motion |
+| PWA | vite-plugin-pwa |
+| Tests | Playwright |
+| Deploy | Vercel |
+
+## Architecture
+
+```
+src/
+  lib/        Supabase client + data-access modules (locations, comments, likes, …)
+  hooks/      Feature hooks (useAuth, useLocations, useLeaderboard, …)
+  pages/      Routes (React Router)
+  components/ Presentational UI
+supabase/     SQL migrations (schema + seed)
+tests/        Playwright end-to-end specs
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The frontend talks directly to Supabase (PostgREST + Auth). Schema is plain SQL tracked in `supabase/` and applied in the Supabase SQL editor, oldest → newest.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Run it locally
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+Create a git-ignored `.env.local` with your Supabase project keys:
+
+```
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon key>
+```
+
+Apply the migrations in `supabase/` to your Supabase project, then:
+
+```bash
+npm run dev          # dev server on :5173
+npx playwright test  # end-to-end tests
+```
+
+## Deploy
+
+Deployed to Vercel; `vercel.json` rewrites all routes to `index.html` for the SPA. Production build: `npm run build` → `dist/`.
+
+## Status
+
+Shipped and live. Next up: surface-quality field on spots and richer filtering.
