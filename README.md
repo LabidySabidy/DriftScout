@@ -8,6 +8,16 @@ A community-driven map of drifting practice spots. Drivers discover safe, vetted
 
 DriftScout is a community map of drifting practice spots — drivers share, find, and vet locations. It's a mobile-first web app where the community catalogues parking lots and facilities, with the access details that matter: fee, permission level, and surface.
 
+## Screenshots
+
+| Map view | Location details |
+| --- | --- |
+| ![Map view](docs/screenshots/map-view.png) | ![Location details](docs/screenshots/location-details.png) |
+
+| Home page | Admin user management |
+| --- | --- |
+| ![Home page](docs/screenshots/home-page.png) | ![Admin user management](docs/screenshots/admin-user-view.png) |
+
 ## Features
 
 **Discovery**
